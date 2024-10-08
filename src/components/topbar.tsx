@@ -1,10 +1,11 @@
 "use client"
 
+import NotificationDrawer from "@/components/notification-drawer"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { Search } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
 import { Fragment } from "react"
 import {
@@ -24,8 +25,20 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 
+export interface User {
+  firstName: string
+  lastName: string
+  email: string
+}
+
 export default function Topbar() {
   const { breadcrumbs } = useBreadcrumbs()
+
+  const user: User = {
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+  }
 
   return (
     <div className="flex h-14 w-full items-center gap-4 bg-background px-4">
@@ -55,6 +68,7 @@ export default function Topbar() {
           className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
         />
       </div>
+      <NotificationDrawer />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -62,13 +76,13 @@ export default function Topbar() {
             size="icon"
             className="overflow-hidden rounded-full"
           >
-            <Image
-              src="/placeholder-user.jpg"
-              width={36}
-              height={36}
-              alt="Avatar"
-              className="overflow-hidden rounded-full"
-            />
+            <Avatar>
+              <AvatarImage src="/placeholder-user.jpg" alt="Avatar" />
+              <AvatarFallback>
+                {user.firstName.charAt(0).toUpperCase() +
+                  user.lastName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

@@ -24,37 +24,70 @@ export default function Sidebar() {
           <span className="text-2xl font-bold">L</span>
         </Link>
       </div>
-      <ScrollArea className="flex-1">
+      <div className="flex flex-1 flex-col justify-between">
+        <ScrollArea className="flex-1">
+          <nav className="flex flex-col gap-4 p-2">
+            {sidebarList.map((group, groupIndex) => (
+              <div key={groupIndex}>
+                {group.menus
+                  .filter((menu) => menu.alignment !== "bottom")
+                  .map((menu) => (
+                    <TooltipProvider key={menu.label}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant={menu.active ? "secondary" : "ghost"}
+                            className={cn(
+                              "h-12 w-12 p-0",
+                              menu.active && "bg-secondary",
+                            )}
+                            asChild
+                          >
+                            <Link href={menu.href}>
+                              {menu.icon && <menu.icon className="h-5 w-5" />}
+                            </Link>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{menu.label}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ))}
+              </div>
+            ))}
+          </nav>
+        </ScrollArea>
         <nav className="flex flex-col gap-4 p-2">
-          {sidebarList.map((group, groupIndex) => (
-            <div key={groupIndex}>
-              {group.menus.map((menu) => (
-                <TooltipProvider key={menu.label}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={menu.active ? "secondary" : "ghost"}
-                        className={cn(
-                          "h-12 w-12 p-0",
-                          menu.active && "bg-secondary",
-                        )}
-                        asChild
-                      >
-                        <Link href={menu.href}>
-                          {menu.icon && <menu.icon className="h-5 w-5" />}
-                        </Link>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      <p>{menu.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ))}
-            </div>
-          ))}
+          {sidebarList
+            .flatMap((group) =>
+              group.menus.filter((menu) => menu.alignment === "bottom"),
+            )
+            .map((menu) => (
+              <TooltipProvider key={menu.label}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={menu.active ? "secondary" : "ghost"}
+                      className={cn(
+                        "h-12 w-12 p-0",
+                        menu.active && "bg-secondary",
+                      )}
+                      asChild
+                    >
+                      <Link href={menu.href}>
+                        {menu.icon && <menu.icon className="h-5 w-5" />}
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>{menu.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
         </nav>
-      </ScrollArea>
+      </div>
     </aside>
   )
 }
