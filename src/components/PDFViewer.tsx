@@ -1,12 +1,12 @@
 import { Viewer, Worker } from "@react-pdf-viewer/core"
 import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout"
 import {
-  HighlightArea,
   highlightPlugin,
   RenderHighlightsProps,
   Trigger,
 } from "@react-pdf-viewer/highlight"
 
+import { Note } from "@/types/document"
 import "@react-pdf-viewer/core/lib/styles/index.css"
 import "@react-pdf-viewer/default-layout/lib/styles/index.css"
 import "@react-pdf-viewer/highlight/lib/styles/index.css"
@@ -17,17 +17,8 @@ interface PDFViewerProps {
   notes: Note[]
 }
 
-interface Note {
-  id: number
-  content: string
-  highlightAreas: HighlightArea[]
-  quote: string
-}
-
 export default function PDFViewer({ fileUrl, notes }: PDFViewerProps) {
-  console.log("PDFViewer rendered with:", { fileUrl, notes })
   const renderHighlights = (props: RenderHighlightsProps) => {
-    console.log("renderHighlights called with:", props)
     return (
       <div>
         {notes.map((note) => (
@@ -73,8 +64,8 @@ export default function PDFViewer({ fileUrl, notes }: PDFViewerProps) {
       workerUrl={`https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js`}
     >
       <div className="flex h-full">
-        <div className="w-1/3 p-4 border-r">
-          <h1 className="text-2xl font-bold mb-4">Document Sidebar</h1>
+        <div className="w-1/3 px-4 border-r">
+          <h1 className="text-2xl font-bold px-2 mb-4">Document Preview</h1>
           {notes.length === 0 && <p>No notes yet</p>}
           {notes.map((note) => (
             <div
@@ -82,8 +73,8 @@ export default function PDFViewer({ fileUrl, notes }: PDFViewerProps) {
               onClick={() => jumpToHighlightArea(note.highlightAreas[0])}
               className="cursor-pointer hover:bg-gray-100 p-2 rounded"
             >
-              <h3 className="font-bold">{note.content}</h3>
-              <p className="text-sm text-gray-600">{note.quote}</p>
+              <h3 className="font-bold">{note.header}</h3>
+              <p className="text-sm text-gray-600">{note.body}</p>
             </div>
           ))}
         </div>

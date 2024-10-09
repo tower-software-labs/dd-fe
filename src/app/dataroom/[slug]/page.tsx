@@ -4,10 +4,11 @@ import DataroomTable from "@/components/dataroom-table"
 import { Button } from "@/components/ui/button"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { DataroomItem } from "@/types/dataroom"
-import { ChevronDown, FileIcon, MessageSquare, Sparkles } from "lucide-react"
+import { ChevronDown, FileIcon, Sparkles } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { folders as sampleFolders } from "@/app/sample-data/dataroom"
+import AIAssistantPopover from "@/components/ai-chat-popover"
 import {
   Popover,
   PopoverContent,
@@ -55,13 +56,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
           <Sparkles className="h-4 w-4" />
           Ask a question
         </span>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 bg-white text-slate-500"
-        >
-          <MessageSquare className="h-4 w-4" />
-          Chat with AI
-        </Button>
+        <AIAssistantPopover />
       </div>
       <div className="flex items-center gap-4 bg-slate-100 rounded-lg p-1 justify-start w-fit mb-4 ">
         <ToggleGroup

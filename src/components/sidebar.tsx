@@ -38,7 +38,7 @@ export default function Sidebar() {
                           <Button
                             variant={menu.active ? "secondary" : "ghost"}
                             className={cn(
-                              "h-12 w-12 p-0",
+                              "h-12 w-12 my-0.5",
                               menu.active && "bg-secondary",
                             )}
                             asChild
