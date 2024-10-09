@@ -8,6 +8,7 @@ interface CommentProps {
 
 export default function CommentComponent({ comment }: CommentProps) {
   const { user, text, createdAt } = comment
+  console.log("COMMENT", comment)
 
   return (
     <Card className="p-4 space-y-4">
