@@ -1,10 +1,13 @@
 import Sidebar from "@/components/sidebar"
 import Topbar from "@/components/topbar"
 import { BreadcrumbProvider } from "@/providers/breadcrumb-provider"
+import "@react-pdf-viewer/core/lib/styles/index.css"
+import "@react-pdf-viewer/default-layout/lib/styles/index.css"
+import "@react-pdf-viewer/highlight/lib/styles/index.css"
+
 import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
-
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
