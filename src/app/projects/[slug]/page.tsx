@@ -13,78 +13,12 @@ import {
 import { CheckCircle2, ChevronDown, ChevronRight, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { users } from "@/app/sample-data/users"
-import UserAvatarSmall from "@/components/user-avatar"
+import { initialSections } from "@/app/sample-data/tasks"
+import AddTaskForm from "@/components/add-task-form"
+import SelectUserPopover from "@/components/select-user-popover"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
+import { Section, Task, TaskState } from "@/types/task"
 import { User } from "@/types/user"
-
-type SubtaskState = "Not Applicable" | "To Be Provided" | "Provided" | null
-
-interface Subtask {
-  id: string
-  title: string
-  description: string
-  state: SubtaskState
-  assignee: User | null
-  verified: boolean
-}
-
-interface Section {
-  id: string
-  title: string
-  subtasks: Subtask[]
-}
-
-const initialSections: Section[] = [
-  {
-    id: "1",
-    title: "Employment Matters",
-    subtasks: [
-      {
-        id: "1.1",
-        title: "Review employment agreements",
-        description:
-          "Analyze all current employment contracts for compliance with labor laws and company policies.",
-        state: null,
-        assignee: users[0],
-        verified: false,
-      },
-      {
-        id: "1.2",
-        title: "Analyze compensation structures",
-        description:
-          "Evaluate salary ranges, bonus schemes, and benefits packages across all employee levels.",
-        state: null,
-        assignee: null,
-        verified: false,
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Intellectual Property",
-    subtasks: [
-      {
-        id: "2.1",
-        title: "Review patent portfolio",
-        description:
-          "Examine all existing patents, their current status, and potential infringement risks.",
-        state: null,
-        assignee: null,
-        verified: false,
-      },
-      {
-        id: "2.2",
-        title: "Analyze trademark registrations",
-        description:
-          "Assess all registered trademarks, their territorial coverage, and renewal dates.",
-        state: null,
-        assignee: null,
-        verified: false,
-      },
-    ],
-  },
-]
 
 const columnWidths = {
   taskName: "w-1/2",
@@ -106,7 +40,6 @@ export default function DueDiligenceDashboard({
 
   useEffect(() => {
     setBreadcrumbs([
-      { href: "/", label: "Home" },
       { href: "/projects", label: "Projects" },
       { href: `/projects/${params.slug}`, label: "Walterson Deal" },
     ])
@@ -123,10 +56,10 @@ export default function DueDiligenceDashboard({
     )
   }
 
-  const updateSubtask = (
+  const updateTask = (
     sectionId: string,
-    subtaskId: string,
-    field: keyof Subtask,
+    taskId: string,
+    field: keyof Task,
     value: any,
   ) => {
     setSections((prevSections) =>
@@ -134,10 +67,8 @@ export default function DueDiligenceDashboard({
         section.id === sectionId
           ? {
               ...section,
-              subtasks: section.subtasks.map((subtask) =>
-                subtask.id === subtaskId
-                  ? { ...subtask, [field]: value }
-                  : subtask,
+              tasks: section.tasks.map((task) =>
+                task.id === taskId ? { ...task, [field]: value } : task,
               ),
             }
           : section,
@@ -145,8 +76,8 @@ export default function DueDiligenceDashboard({
     )
   }
 
-  const toggleAssigneeEdit = (subtaskId: string) => {
-    setEditingAssignee(editingAssignee === subtaskId ? null : subtaskId)
+  const toggleAssigneeEdit = (taskId: string) => {
+    setEditingAssignee(editingAssignee === taskId ? null : taskId)
   }
 
   const addNewSection = () => {
@@ -156,26 +87,31 @@ export default function DueDiligenceDashboard({
     const newSection: Section = {
       id: newSectionId,
       title: `New Section ${newSectionId}`,
-      subtasks: [],
+      tasks: [],
     }
     setSections([...sections, newSection])
     setExpandedSections([...expandedSections, newSectionId])
   }
 
-  const addNewTask = (sectionId: string) => {
+  const addNewTask = (
+    sectionId: string,
+    taskDescription: string,
+    taskTitle: string,
+    taskAssignee: User | null = null,
+  ) => {
     setSections((prevSections) =>
       prevSections.map((section) => {
         if (section.id === sectionId) {
-          const newTaskId = `${sectionId}.${section.subtasks.length + 1}`
-          const newTask: Subtask = {
+          const newTaskId = `${sectionId}.${section.tasks.length + 1}`
+          const newTask: Task = {
             id: newTaskId,
-            title: `New Task ${newTaskId}`,
-            description: "Description for the new task.",
+            title: taskTitle,
+            description: taskDescription,
             state: null,
             assignee: null,
             verified: false,
           }
-          return { ...section, subtasks: [...section.subtasks, newTask] }
+          return { ...section, tasks: [...section.tasks, newTask] }
         }
         return section
       }),
@@ -214,10 +150,10 @@ export default function DueDiligenceDashboard({
                   key={section.id}
                   className="bg-slate-50 hover:bg-slate-100 cursor-pointer w-full"
                 >
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={4}>
                     <div className="flex items-center justify-between">
                       <div
-                        className="flex items-center text-sm font-bold"
+                        className="flex items-center text-sm font-semibold"
                         onClick={() => toggleSection(section.id)}
                       >
                         {expandedSections.includes(section.id) ? (
@@ -227,110 +163,118 @@ export default function DueDiligenceDashboard({
                         )}
                         {section.id}. {section.title}
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => addNewTask(section.id)}
-                      >
-                        <Plus className="mr-2 h-4 w-4" /> Add Task
-                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <SelectUserPopover
+                      selectedUserId={null}
+                      setSelectedUserId={(value: string | null) => {}} // TODO: Implement
+                    />
+                  </TableCell>
+                  <TableCell colSpan={2}>
+                    <div className="flex items-center justify-end">
+                      <AddTaskForm
+                        sectionId={section.id}
+                        previousTaskId={
+                          section.tasks[section.tasks.length - 1]?.id
+                        }
+                        onSave={(newTask) => {
+                          addNewTask(
+                            section.id,
+                            newTask.description,
+                            newTask.title,
+                            newTask.assignee,
+                          )
+                        }}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
                 {expandedSections.includes(section.id) &&
-                  section.subtasks.map((subtask) => (
-                    <TableRow key={subtask.id}>
+                  section.tasks.map((task) => (
+                    <TableRow key={task.id}>
                       <TableCell className="font-medium">
                         <div>
-                          {subtask.id} {subtask.title}
+                          {task.id} {task.title}
                         </div>
                         <div className="text-sm text-muted-foreground mt-1">
-                          {subtask.description}
+                          {task.description}
                         </div>
                       </TableCell>
                       <TableCell>
                         <RadioGroup
-                          value={subtask.state}
+                          value={task.state}
                           onValueChange={(value) =>
-                            updateSubtask(
+                            updateTask(
                               section.id,
-                              subtask.id,
+                              task.id,
                               "state",
-                              value as SubtaskState,
+                              value as TaskState,
                             )
                           }
                           className="flex items-center space-x-1"
                         >
                           <RadioGroupItem
                             value="Not Applicable"
-                            id={`${subtask.id}-na`}
+                            id={`${task.id}-na`}
                           />
                         </RadioGroup>
                       </TableCell>
                       <TableCell>
                         <RadioGroup
-                          value={subtask.state}
+                          value={task.state}
                           onValueChange={(value) =>
-                            updateSubtask(
+                            updateTask(
                               section.id,
-                              subtask.id,
+                              task.id,
                               "state",
-                              value as SubtaskState,
+                              value as TaskState,
                             )
                           }
                           className="flex items-center space-x-1"
                         >
                           <RadioGroupItem
                             value="To Be Provided"
-                            id={`${subtask.id}-np`}
+                            id={`${task.id}-np`}
                           />
                         </RadioGroup>
                       </TableCell>
                       <TableCell>
                         <RadioGroup
-                          value={subtask.state}
+                          value={task.state}
                           onValueChange={(value) =>
-                            updateSubtask(
+                            updateTask(
                               section.id,
-                              subtask.id,
+                              task.id,
                               "state",
-                              value as SubtaskState,
+                              value as TaskState,
                             )
                           }
                           className="flex items-center space-x-1"
                         >
                           <RadioGroupItem
                             value="Provided"
-                            id={`${subtask.id}-p`}
+                            id={`${task.id}-p`}
                           />
                         </RadioGroup>
                       </TableCell>
                       <TableCell>
-                        {subtask.assignee ? (
-                          <UserAvatarSmall
-                            user={subtask.assignee}
-                            className="font-bold"
-                          />
-                        ) : (
-                          <div className="h-5 w-5 bg-muted rounded-full flex items-center justify-center">
-                            -
-                          </div>
-                        )}
+                        <SelectUserPopover
+                          selectedUserId={task.assignee?.id}
+                          setSelectedUserId={(value: string | null) =>
+                            updateTask(section.id, task.id, "assignee", value)
+                          }
+                        />
                       </TableCell>
                       <TableCell>
-                        {subtask.verified ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        {task.verified ? (
+                          <CheckCircle2 className="h-5 w-5 m-2 text-green-500" />
                         ) : (
                           <Button
                             variant="ghost"
-                            className="p-0"
+                            size="icon"
                             onClick={() =>
-                              updateSubtask(
-                                section.id,
-                                subtask.id,
-                                "verified",
-                                true,
-                              )
+                              updateTask(section.id, task.id, "verified", true)
                             }
                           >
                             <CheckCircle2 className="h-5 w-5 text-slate-200" />
@@ -340,11 +284,11 @@ export default function DueDiligenceDashboard({
                       <TableCell className="flex items-center justify-end">
                         <Button
                           variant="ghost"
-                          className="px-3 py-2 m-2"
+                          size="icon"
                           onClick={() => {
-                            // TODO: Implement navigation to subtask details page
+                            // TODO: Implement navigation to task details page
                             console.log(
-                              `Navigate to details for subtask ${subtask.id}`,
+                              `Navigate to details for task ${task.id}`,
                             )
                           }}
                         >

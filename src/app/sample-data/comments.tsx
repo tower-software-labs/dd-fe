@@ -39,7 +39,7 @@ export const comments: Comment[] = [
   },
   {
     id: "6",
-    user: users[3],
+    user: users[2],
     text: "I've noticed some of our older employment agreements might not be up to date with current labor laws. Should we flag these for review?",
     createdAt: "2023-06-02T09:00:00Z",
     updatedAt: "2023-06-02T09:00:00Z",
