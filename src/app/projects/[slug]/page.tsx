@@ -13,63 +13,12 @@ import {
 import { CheckCircle2, ChevronDown, ChevronRight, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { users } from "@/app/sample-data/users"
+import { initialSections } from "@/app/sample-data/tasks"
 import AddTaskForm from "@/components/add-task-form"
 import SelectUserPopover from "@/components/select-user-popover"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { Section, Task, TaskState } from "@/types/task"
 import { User } from "@/types/user"
-
-const initialSections: Section[] = [
-  {
-    id: "1",
-    title: "Employment Matters",
-    tasks: [
-      {
-        id: "1.1",
-        title: "Review employment agreements",
-        description:
-          "Analyze all current employment contracts for compliance with labor laws and company policies.",
-        state: null,
-        assignee: users[0],
-        verified: false,
-      },
-      {
-        id: "1.2",
-        title: "Analyze compensation structures",
-        description:
-          "Evaluate salary ranges, bonus schemes, and benefits packages across all employee levels.",
-        state: null,
-        assignee: null,
-        verified: false,
-      },
-    ],
-  },
-  {
-    id: "2",
-    title: "Intellectual Property",
-    tasks: [
-      {
-        id: "2.1",
-        title: "Review patent portfolio",
-        description:
-          "Examine all existing patents, their current status, and potential infringement risks.",
-        state: null,
-        assignee: null,
-        verified: false,
-      },
-      {
-        id: "2.2",
-        title: "Analyze trademark registrations",
-        description:
-          "Assess all registered trademarks, their territorial coverage, and renewal dates.",
-        state: null,
-        assignee: null,
-        verified: false,
-      },
-    ],
-  },
-]
 
 const columnWidths = {
   taskName: "w-1/2",
@@ -91,7 +40,6 @@ export default function DueDiligenceDashboard({
 
   useEffect(() => {
     setBreadcrumbs([
-      { href: "/", label: "Home" },
       { href: "/projects", label: "Projects" },
       { href: `/projects/${params.slug}`, label: "Walterson Deal" },
     ])
