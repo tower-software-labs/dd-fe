@@ -46,7 +46,7 @@ export default function Page() {
     event.preventDefault()
     // Here you would typically send the form data to your backend
     console.log("Form submitted")
-    router.push("/projects") // Redirect to projects list page after submission
+    router.push("/projects/12345/new") // Redirect to projects list page after submission
   }
 
   return (
