@@ -7,11 +7,14 @@ export interface Note {
   highlightAreas: HighlightArea[]
 }
 
-export interface Document {
+export interface DocumentData {
   id: string
   name: string
+  summary: string
+  stateOfCause: string
   url: string
   notes: Note[]
+  issues: Note[]
   createdAt: string
   updatedAt: string
 }

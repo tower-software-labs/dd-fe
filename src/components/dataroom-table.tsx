@@ -2,6 +2,7 @@
 
 import { DataroomItem } from "@/types/dataroom"
 
+import { sampleDocument } from "@/app/sample-data/document"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { minimalLocalDateTime } from "@/helpers/date-utils"
+import { DocumentData } from "@/types/document"
 import { Eye, FileIcon, Folder } from "lucide-react"
 import { useEffect, useState } from "react"
 import DocumentPreviewDrawer from "./document-preview-drawer"
@@ -23,7 +25,7 @@ export interface DataroomTableProps {
 export default function DataroomTable({ items }: DataroomTableProps) {
   const [curFolder, setCurFolder] = useState<DataroomItem | null>(null)
   const [listedItems, setListedItems] = useState<DataroomItem[]>([])
-  const documentUrl = "/test.pdf"
+  const [document, setDocument] = useState<DocumentData>(sampleDocument)
   const [isDocumentPreviewOpen, setIsDocumentPreviewOpen] = useState(false)
 
   useEffect(() => {
@@ -114,7 +116,7 @@ export default function DataroomTable({ items }: DataroomTableProps) {
       <DocumentPreviewDrawer
         isOpen={isDocumentPreviewOpen}
         setIsOpen={setIsDocumentPreviewOpen}
-        documentUrl={documentUrl}
+        document={document}
       />
     </div>
   )

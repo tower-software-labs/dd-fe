@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/popover"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { minimalLocalDateTime } from "@/helpers/date-utils"
+import { useProject } from "@/providers/project-provider"
 
 export interface DataRoomPageProps {
   params: {
@@ -24,6 +25,7 @@ export interface DataRoomPageProps {
 }
 
 export default function DataRoomPage({ params }: DataRoomPageProps) {
+  const { setProjectId } = useProject()
   const { setBreadcrumbs } = useBreadcrumbs()
   const [folders, setFolders] = useState<DataroomItem[]>([])
   const [curFolder, setCurFolder] = useState<DataroomItem | null>(null)
@@ -41,6 +43,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
       { href: `/projects/${params.slug}`, label: "Walterson Deal" },
       { href: `/dataroom/${params.slug}`, label: "Dataroom" },
     ])
+    setProjectId(params.slug)
     setFolders(sampleFolders)
   }, [setBreadcrumbs, params.slug])
   // Mock data - replace this with actual data fetching logic
@@ -78,7 +81,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
             Expiration ({numExpired})
           </ToggleGroupItem>
           <ToggleGroupItem value="document-reference-missing">
-            Document Reference ({numDocumentReferenceMissing})
+            Reference Missing ({numDocumentReferenceMissing})
           </ToggleGroupItem>
         </ToggleGroup>
         <Popover>

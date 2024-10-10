@@ -1,19 +1,22 @@
 "use client"
 
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
+import { useProject } from "@/providers/project-provider"
 import { useEffect } from "react"
 
 export default function Page() {
   const { setBreadcrumbs } = useBreadcrumbs()
+  const { setProjectId } = useProject()
 
   useEffect(() => {
     setBreadcrumbs([
       { href: "/", label: "Home" },
       { href: "/projects", label: "Projects" },
     ])
+    setProjectId(null)
   }, [setBreadcrumbs])
   return (
-    <div className="space-y-4">
+    <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold">Projects Index Page</h1>
       <div className="space-y-2">
         <p className="text-xs font-thin">Extra Light (100)</p>

@@ -1,41 +1,31 @@
 "use client"
 
-import { sampleNotes } from "@/app/sample-data/document"
 import PDFViewer from "@/components/PDFViewer"
-import { Button } from "@/components/ui/button"
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-} from "@/components/ui/drawer"
+import { Drawer, DrawerContent } from "@/components/ui/drawer"
+import { DocumentData } from "@/types/document"
 
 export interface DocumentPreviewDrawerProps {
   isOpen: boolean
   setIsOpen: (isOpen: boolean) => void
-  documentUrl: string
+  document: DocumentData
 }
 
 export default function DocumentPreviewDrawer({
   isOpen,
   setIsOpen,
-  documentUrl,
+  document,
 }: DocumentPreviewDrawerProps) {
+  const handleClose = () => {
+    setIsOpen(false)
+  }
+
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
-      {/* <DrawerTrigger asChild>
-        <Button variant="outline">Open Preview Drawer</Button>
-      </DrawerTrigger> */}
       <DrawerContent className="h-full flex flex-col overflow-y-hidden">
         <div className="mt-4 px-6">
-          <div className="h-[90svh]">
-            {isOpen && <PDFViewer fileUrl={documentUrl} notes={sampleNotes} />}
+          <div className="h-[95svh]">
+            {isOpen && <PDFViewer document={document} onClose={handleClose} />}
           </div>
-          <DrawerFooter className="flex-shrink-0">
-            <DrawerClose asChild>
-              <Button variant="outline">Close</Button>
-            </DrawerClose>
-          </DrawerFooter>
         </div>
       </DrawerContent>
     </Drawer>

@@ -24,11 +24,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useProject } from "@/providers/project-provider"
 
 export default function Page() {
   const router = useRouter()
   const { setBreadcrumbs } = useBreadcrumbs()
-
+  const { setProjectId } = useProject()
   const [startDate, setStartDate] = useState<Date>()
   const [endDate, setEndDate] = useState<Date>()
   const [selectedTeamMembers, setSelectedTeamMembers] = useState<string[]>([])
@@ -38,8 +39,9 @@ export default function Page() {
     setBreadcrumbs([
       { href: "/", label: "Home" },
       { href: "/projects", label: "Projects" },
-      { href: "/projects/new", label: "Create New Project" },
+      { href: "/projects/new", label: "New" },
     ])
+    setProjectId(null)
   }, [setBreadcrumbs])
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -198,4 +200,7 @@ export default function Page() {
       </form>
     </div>
   )
+}
+function setProjectId(arg0: null) {
+  throw new Error("Function not implemented.")
 }

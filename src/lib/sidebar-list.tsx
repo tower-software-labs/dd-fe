@@ -1,4 +1,6 @@
+import { useProject } from "@/providers/project-provider"
 import {
+  ChartBarBig,
   ClipboardList,
   Database,
   LayoutGrid,
@@ -28,6 +30,7 @@ type Group = {
 }
 
 export function getSidebarList(pathname: string): Group[] {
+  const { projectId } = useProject()
   return [
     {
       groupLabel: "",
@@ -45,16 +48,22 @@ export function getSidebarList(pathname: string): Group[] {
       groupLabel: "Project Data",
       menus: [
         {
-          href: "/dataroom",
+          href: `/dataroom/${projectId}`,
           label: "Data Room",
-          active: pathname.includes("/dataroom"),
+          active: pathname.includes(`/dataroom/${projectId}`),
           icon: Database,
         },
         {
-          href: "/request-list",
+          href: `/projects/${projectId}`,
           label: "Request List",
-          active: pathname.includes("/request-list"),
+          active: pathname.split("?")[0].endsWith(`/projects/${projectId}`),
           icon: ClipboardList,
+        },
+        {
+          href: `/projects/${projectId}/dashboard`,
+          label: "Dashboard",
+          active: pathname.includes(`/projects/${projectId}/dashboard`),
+          icon: ChartBarBig,
         },
       ],
     },
