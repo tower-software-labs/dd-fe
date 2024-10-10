@@ -5,14 +5,16 @@ import {
   RenderHighlightsProps,
   Trigger,
 } from "@react-pdf-viewer/highlight"
-import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { ChevronDown, ChevronLeft, ChevronRight, Send, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { DocumentData } from "@/types/document"
 import "@react-pdf-viewer/core/lib/styles/index.css"
 import "@react-pdf-viewer/default-layout/lib/styles/index.css"
 import "@react-pdf-viewer/highlight/lib/styles/index.css"
-import { Fragment, useState } from "react"
+import { Fragment, useRef, useState } from "react"
+import AIAssistantChat from "./ai-chat"
 import {
   Collapsible,
   CollapsibleContent,
@@ -26,6 +28,8 @@ interface PDFViewerProps {
 
 export default function PDFViewer({ document, onClose }: PDFViewerProps) {
   const [isLeftColumnCollapsed, setIsLeftColumnCollapsed] = useState(false)
+  const [isAIChatExpanded, setIsAIChatExpanded] = useState(false)
+  const viewerRef = useRef(null)
 
   console.log("document", document)
   const renderHighlights = (props: RenderHighlightsProps) => {
@@ -79,7 +83,7 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
     >
       <div className="flex h-full relative">
         <div
-          className={`${isLeftColumnCollapsed ? "w-auto" : "w-1/3"} transition-all duration-300 ease-in-out`}
+          className={`${isLeftColumnCollapsed ? "w-auto" : "w-1/3"} transition-all duration-300 ease-in-out flex flex-col`}
         >
           <div className="flex flex-col h-full">
             <div className="flex justify-between items-center mb-4">
@@ -146,6 +150,34 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
               </div>
             )}
           </div>
+          {!isLeftColumnCollapsed && (
+            <div className="mt-auto">
+              <div
+                className={`transition-all duration-300 ease-in-out w-full ${isAIChatExpanded ? "h-[50svh]" : "h-[40px]"}`}
+              >
+                {isAIChatExpanded ? (
+                  <div className="h-full opacity-100 transition-opacity duration-300 mr-4">
+                    <AIAssistantChat
+                      onClose={() => setIsAIChatExpanded(false)}
+                    />
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2 opacity-100 transition-opacity duration-300 mr-4">
+                    <Input
+                      placeholder="Ask Clausy AI about this document"
+                      onFocus={() => setIsAIChatExpanded(true)}
+                    />
+                    <Button
+                      size="icon"
+                      onClick={() => setIsAIChatExpanded(true)}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={`${isLeftColumnCollapsed ? "flex-grow" : "w-2/3"}`}>
@@ -153,6 +185,7 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
             <Viewer
               fileUrl={document.url}
               plugins={[defaultLayoutPluginInstance, highlightPluginInstance]}
+              ref={viewerRef}
             />
           </div>
         </div>
