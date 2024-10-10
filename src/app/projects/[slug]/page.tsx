@@ -17,6 +17,7 @@ import { initialSections } from "@/app/sample-data/tasks"
 import AddTaskForm from "@/components/add-task-form"
 import SelectUserPopover from "@/components/select-user-popover"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
+import { useProject } from "@/providers/project-provider"
 import { Section, Task, TaskState } from "@/types/task"
 import { User } from "@/types/user"
 
@@ -37,12 +38,14 @@ export default function DueDiligenceDashboard({
   const [expandedSections, setExpandedSections] = useState<string[]>([])
   const [editingAssignee, setEditingAssignee] = useState<string | null>(null)
   const { setBreadcrumbs } = useBreadcrumbs()
+  const { setProjectId } = useProject()
 
   useEffect(() => {
     setBreadcrumbs([
       { href: "/projects", label: "Projects" },
       { href: `/projects/${params.slug}`, label: "Walterson Deal" },
     ])
+    setProjectId(params.slug)
 
     setSections(initialSections)
     setExpandedSections(initialSections.map((section) => section.id))

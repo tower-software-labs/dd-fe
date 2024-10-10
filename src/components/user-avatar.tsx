@@ -35,6 +35,8 @@ export default function UserAvatar({
   const avatarSizeClass = sizeClasses[size]
   const textSizeClass =
     size === "sm" ? "text-sm" : size === "md" ? "text-base" : "text-lg"
+  const titleSizeClass =
+    size === "sm" ? "text-xs" : size === "md" ? "text-sm" : "text-base"
 
   return (
     <TooltipProvider>
@@ -46,9 +48,18 @@ export default function UserAvatar({
               <AvatarFallback>{getUserInitialsString(user)}</AvatarFallback>
             </Avatar>
             {showFullName && (
-              <span className={`font-medium ${className}`}>
-                {userDisplayString}
-              </span>
+              <div className={`flex flex-col items-start ${className}`}>
+                <span className="font-medium text-left">
+                  {userDisplayString}
+                </span>
+                {user.title && (
+                  <span
+                    className={`${titleSizeClass} text-slate-500 text-left`}
+                  >
+                    {user.title}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </TooltipTrigger>
@@ -56,7 +67,7 @@ export default function UserAvatar({
           {!showFullName && (
             <span className="font-semibold text-sm">{userDisplayString}</span>
           )}
-          {user.title && <span>{user.title}</span>}
+          {!showFullName && user.title && <span>{user.title}</span>}
           {user.email && <span>{user.email}</span>}
         </TooltipContent>
       </Tooltip>

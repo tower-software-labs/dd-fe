@@ -4,8 +4,10 @@ import NotificationDrawer from "@/components/notification-drawer"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { getUserInitialsString } from "@/helpers/user-utils"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
-import { Search } from "lucide-react"
+import { useUser } from "@/providers/user-provider"
+import { HelpCircle, LogOut, Search, Settings } from "lucide-react"
 import Link from "next/link"
 import { Fragment } from "react"
 import {
@@ -20,25 +22,14 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
-
-export interface User {
-  firstName: string
-  lastName: string
-  email: string
-}
+import UserAvatar from "./user-avatar"
 
 export default function Topbar() {
   const { breadcrumbs } = useBreadcrumbs()
-
-  const user: User = {
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-  }
+  const { user } = useUser()
 
   return (
     <div className="flex h-14 w-full items-center gap-4 bg-background px-4">
@@ -77,21 +68,27 @@ export default function Topbar() {
             className="overflow-hidden rounded-full"
           >
             <Avatar>
-              <AvatarImage src="/placeholder-user.jpg" alt="Avatar" />
-              <AvatarFallback>
-                {user.firstName.charAt(0).toUpperCase() +
-                  user.lastName.charAt(0).toUpperCase()}
-              </AvatarFallback>
+              <AvatarImage src={user.avatar_url} alt="Avatar" />
+              <AvatarFallback>{getUserInitialsString(user)}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="p-4 space-y-2">
+          <UserAvatar user={user} showFullName={true} size="md" />
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuItem>
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Support
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span className="font-bold">Logout</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

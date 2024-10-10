@@ -4,10 +4,11 @@ import DataroomTable from "@/components/dataroom-table"
 import { Button } from "@/components/ui/button"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { DataroomItem } from "@/types/dataroom"
-import { ChevronDown, FileIcon, MessageSquare, Sparkles } from "lucide-react"
+import { ChevronDown, FileIcon, Sparkles } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { folders as sampleFolders } from "@/app/sample-data/dataroom"
+import AIAssistantPopover from "@/components/ai-chat-popover"
 import {
   Popover,
   PopoverContent,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/popover"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { minimalLocalDateTime } from "@/helpers/date-utils"
+import { useProject } from "@/providers/project-provider"
 
 export interface DataRoomPageProps {
   params: {
@@ -23,6 +25,7 @@ export interface DataRoomPageProps {
 }
 
 export default function DataRoomPage({ params }: DataRoomPageProps) {
+  const { setProjectId } = useProject()
   const { setBreadcrumbs } = useBreadcrumbs()
   const [folders, setFolders] = useState<DataroomItem[]>([])
   const [curFolder, setCurFolder] = useState<DataroomItem | null>(null)
@@ -40,6 +43,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
       { href: `/projects/${params.slug}`, label: "Walterson Deal" },
       { href: `/dataroom/${params.slug}`, label: "Dataroom" },
     ])
+    setProjectId(params.slug)
     setFolders(sampleFolders)
   }, [setBreadcrumbs, params.slug])
   // Mock data - replace this with actual data fetching logic
@@ -55,13 +59,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
           <Sparkles className="h-4 w-4" />
           Ask a question
         </span>
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 bg-white text-slate-500"
-        >
-          <MessageSquare className="h-4 w-4" />
-          Chat with AI
-        </Button>
+        <AIAssistantPopover />
       </div>
       <div className="flex items-center gap-4 bg-slate-100 rounded-lg p-1 justify-start w-fit mb-4 ">
         <ToggleGroup
@@ -83,7 +81,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
             Expiration ({numExpired})
           </ToggleGroupItem>
           <ToggleGroupItem value="document-reference-missing">
-            Document Reference ({numDocumentReferenceMissing})
+            Reference Missing ({numDocumentReferenceMissing})
           </ToggleGroupItem>
         </ToggleGroup>
         <Popover>

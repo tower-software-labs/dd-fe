@@ -1,10 +1,15 @@
 import Sidebar from "@/components/sidebar"
 import Topbar from "@/components/topbar"
 import { BreadcrumbProvider } from "@/providers/breadcrumb-provider"
+import "@react-pdf-viewer/core/lib/styles/index.css"
+import "@react-pdf-viewer/default-layout/lib/styles/index.css"
+import "@react-pdf-viewer/highlight/lib/styles/index.css"
+
+import { ProjectProvider } from "@/providers/project-provider"
+import { UserProvider } from "@/providers/user-provider"
 import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
-
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -31,15 +36,19 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <BreadcrumbProvider>
-          <div className="flex h-screen">
-            <Sidebar />
-            <div className="flex flex-col flex-1 overflow-hidden ml-16">
-              <Topbar />
-              <main className="flex-1 overflow-auto p-4">{children}</main>
-            </div>
-          </div>
-        </BreadcrumbProvider>
+        <UserProvider>
+          <BreadcrumbProvider>
+            <ProjectProvider>
+              <div className="flex h-screen">
+                <Sidebar />
+                <div className="flex flex-col flex-1 overflow-hidden ml-16">
+                  <Topbar />
+                  <main className="flex-1 overflow-auto p-4">{children}</main>
+                </div>
+              </div>
+            </ProjectProvider>
+          </BreadcrumbProvider>
+        </UserProvider>
       </body>
     </html>
   )
