@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { DocumentData } from "@/types/document"
-import { Loader2, Send, Sparkles, X } from "lucide-react"
+import { ChevronDown, Loader2, Send, Sparkles, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface Message {
@@ -21,11 +21,13 @@ const initialMessages: Message[] = [
 export interface AIAssistantChatProps {
   onClose: () => void
   searchableDocuments: DocumentData[] // Add this prop to receive the document URL
+  closeButtonType?: "x" | "collapse"
 }
 
 export default function AIAssistantChat({
   onClose,
   searchableDocuments = [],
+  closeButtonType = "x",
 }: AIAssistantChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
@@ -85,7 +87,11 @@ export default function AIAssistantChat({
           <h3 className="font-semibold">Clausy AI</h3>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
+          {closeButtonType === "x" ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
           <span className="sr-only">Close</span>
         </Button>
       </div>

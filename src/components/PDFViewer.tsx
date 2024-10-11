@@ -160,6 +160,7 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
                     <AIAssistantChat
                       onClose={() => setIsAIChatExpanded(false)}
                       searchableDocuments={[document]}
+                      closeButtonType="collapse"
                     />
                   </div>
                 ) : (
