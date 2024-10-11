@@ -159,6 +159,7 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
                   <div className="h-full opacity-100 transition-opacity duration-300 mr-4">
                     <AIAssistantChat
                       onClose={() => setIsAIChatExpanded(false)}
+                      searchableDocuments={[document]}
                     />
                   </div>
                 ) : (
