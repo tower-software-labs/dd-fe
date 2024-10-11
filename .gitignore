@@ -129,3 +129,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# notebooks`
+notebooks
+.ipynb_checkpoints
+deno.lock

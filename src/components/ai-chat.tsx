@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Send, Sparkles, X } from "lucide-react"
+import { DocumentData } from "@/types/document"
+import { Loader2, Send, Sparkles, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 interface Message {
@@ -15,40 +16,58 @@ const initialMessages: Message[] = [
     content:
       "Hi, I'm Clausy - your AI legal assistant. I can help you review and summarize data room documents. How can I help?",
   },
-  {
-    sender: "user",
-    content: "Show me all contracts with different termination notice periods.",
-  },
-  {
-    sender: "ai",
-    content:
-      "Certainly! I'll search for contracts with varying termination notice periods. Here's what I've found:\n\n1. Employment Agreement A: 30 days notice\n2. Vendor Contract B: 60 days notice\n3. Executive Employment Contract C: 90 days notice\n4. Service Agreement D: 45 days notice\n5. Consulting Contract E: 15 days notice\n\nAs you can see, there's quite a range in the notice periods. Would you like me to provide a more detailed analysis of these differences and their potential implications?",
-  },
 ]
 
 export interface AIAssistantChatProps {
   onClose: () => void
+  searchableDocuments: DocumentData[] // Add this prop to receive the document URL
 }
 
-export default function AIAssistantChat({ onClose }: AIAssistantChatProps) {
+export default function AIAssistantChat({
+  onClose,
+  searchableDocuments = [],
+}: AIAssistantChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (input.trim()) {
-      setMessages([...messages, { sender: "user", content: input }])
+      const userMessage: Message = { sender: "user", content: input }
+      setMessages((prev) => [...prev, userMessage])
       setInput("")
-      // Simulate AI response (replace with actual AI integration)
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            sender: "ai",
-            content: "I received your message. How can I help further?",
+      setIsLoading(true)
+
+      try {
+        const response = await fetch("/api/document/[id]", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-        ])
-      }, 1000)
+          body: JSON.stringify({
+            userMessage: input,
+            searchableDocuments: searchableDocuments,
+          }),
+        })
+
+        if (!response.ok) {
+          throw new Error("Failed to get AI response")
+        }
+
+        const data = await response.json()
+        const aiMessage: Message = { sender: "ai", content: data.response }
+        setMessages((prev) => [...prev, aiMessage])
+      } catch (error) {
+        console.error("Error:", error)
+        const errorMessage: Message = {
+          sender: "ai",
+          content: "Sorry, I encountered an error. Please try again.",
+        }
+        setMessages((prev) => [...prev, errorMessage])
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -81,7 +100,7 @@ export default function AIAssistantChat({ onClose }: AIAssistantChatProps) {
                 <span
                   className={`text-xs mb-1 mx-1 text-gray-500 ${message.sender === "user" ? "text-right" : "text-left"}`}
                 >
-                  {message.sender === "user" ? "John Doe" : "Clausy AI"}
+                  {message.sender === "user" ? "You" : "Clausy AI"}
                 </span>
                 <div
                   className={`flex rounded-md p-2 ${
@@ -99,6 +118,14 @@ export default function AIAssistantChat({ onClose }: AIAssistantChatProps) {
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="flex items-center space-x-2 bg-muted rounded-md p-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <p className="text-sm">Clausy is thinking...</p>
+              </div>
+            </div>
+          )}
         </div>
       </ScrollArea>
       <div className="flex items-center space-x-2 mt-auto">
@@ -106,9 +133,10 @@ export default function AIAssistantChat({ onClose }: AIAssistantChatProps) {
           placeholder="Type your message..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSend()}
+          disabled={isLoading}
         />
-        <Button size="icon" onClick={handleSend}>
+        <Button size="icon" onClick={handleSend} disabled={isLoading}>
           <Send className="h-4 w-4" />
           <span className="sr-only">Send message</span>
         </Button>
