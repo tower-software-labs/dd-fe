@@ -88,12 +88,31 @@ export default function DataroomTable({
       .map((item) => item.name)
   }
 
+  const handleHeaderCheckboxChange = () => {
+    if (selectedItems.length === listedItems.length) {
+      // If all items are selected, deselect all
+      setSelectedItems([])
+    } else {
+      // If not all items are selected, select all
+      setSelectedItems([...listedItems])
+    }
+  }
+
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className={`${columnWidths.checkbox}`}></TableHead>
+            <TableHead className={`pl-4 ${columnWidths.checkbox}`}>
+              <Checkbox
+                className="data-[state=unchecked]:border-gray-300"
+                checked={
+                  selectedItems.length === listedItems.length &&
+                  listedItems.length > 0
+                }
+                onCheckedChange={handleHeaderCheckboxChange}
+              />
+            </TableHead>
             <TableHead className={columnWidths.item}>Item</TableHead>
             <TableHead className={columnWidths.name}>Name</TableHead>
             <TableHead className={columnWidths.info}></TableHead>
@@ -108,6 +127,7 @@ export default function DataroomTable({
             <TableRow key={item.id} className="py-2 cursor-pointer">
               <TableCell className={`py-4 pl-4 ${columnWidths.checkbox}`}>
                 <Checkbox
+                  className="data-[state=unchecked]:border-gray-300"
                   checked={selectedItems.some(
                     (selectedItem) => selectedItem.id === item.id,
                   )}
