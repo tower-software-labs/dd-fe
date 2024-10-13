@@ -1,14 +1,12 @@
+import ChatMessage from "@/components/ai-chat/chat-message"
+import ThinkingAnimation from "@/components/ai-thinking-animation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { DocumentData } from "@/types/document"
-import { Loader2, Send, Sparkles, X } from "lucide-react"
+import { Message } from "@/types/chat"
+import { Citation, DocumentData } from "@/types/document"
+import { ChevronDown, Send, Sparkles, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-
-interface Message {
-  sender: "ai" | "user"
-  content: string
-}
 
 const initialMessages: Message[] = [
   {
@@ -16,16 +14,40 @@ const initialMessages: Message[] = [
     content:
       "Hi, I'm Clausy - your AI legal assistant. I can help you review and summarize data room documents. How can I help?",
   },
+  {
+    sender: "ai",
+    content:
+      "For example, I can provide information about specific sections in documents. [citation]Here's a sample citation from the 'Change of Control' section on page 1.[citation]",
+    citations: [
+      {
+        id: "sample-citation-1",
+        fileName: "Sample Document",
+        highlightAreas: [
+          {
+            pageIndex: 1,
+            height: 30.55401,
+            width: 28.1674,
+            left: 18,
+            top: 15.0772,
+          },
+        ],
+      },
+    ],
+  },
 ]
 
 export interface AIAssistantChatProps {
   onClose: () => void
   searchableDocuments: DocumentData[] // Add this prop to receive the document URL
+  closeButtonType?: "x" | "collapse"
+  onCitationClick?: (citation: Citation) => void
 }
 
 export default function AIAssistantChat({
   onClose,
   searchableDocuments = [],
+  closeButtonType = "x",
+  onCitationClick = (citation: Citation) => {},
 }: AIAssistantChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
@@ -79,50 +101,40 @@ export default function AIAssistantChat({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div className="flex items-center space-x-2">
           <Sparkles className="h-5 w-5 text-slate-600" />
           <h3 className="font-semibold">Clausy AI</h3>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
-          <X className="h-4 w-4" />
+          {closeButtonType === "x" ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
           <span className="sr-only">Close</span>
         </Button>
       </div>
-      <ScrollArea className="flex-grow mb-4 px-2 w-full" ref={scrollAreaRef}>
+      <ScrollArea className="flex-grow mb-4 pr-4">
         <div className="space-y-4">
           {messages.map((message, index) => (
-            <div
+            <ChatMessage
               key={index}
-              className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div className="flex flex-col max-w-[80%]">
-                <span
-                  className={`text-xs mb-1 mx-1 text-gray-500 ${message.sender === "user" ? "text-right" : "text-left"}`}
-                >
-                  {message.sender === "user" ? "You" : "Clausy AI"}
-                </span>
-                <div
-                  className={`flex rounded-md p-2 ${
-                    message.sender === "user"
-                      ? "bg-primary text-primary-foreground text-right"
-                      : "bg-muted text-left justify-start"
-                  }`}
-                >
-                  <p
-                    className={`text-sm ${message.sender === "user" ? "ml-auto" : ""}`}
-                  >
-                    {message.content}
-                  </p>
-                </div>
-              </div>
-            </div>
+              sender={message.sender}
+              content={message.content}
+              citations={message.citations}
+              onCitationClick={onCitationClick}
+            />
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-center space-x-2 bg-muted rounded-md p-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <p className="text-sm">Clausy is thinking...</p>
+              <div className="flex flex-col max-w-[80%]">
+                <span className="text-xs mb-1 mx-1 text-gray-500 text-left">
+                  Clausy is thinking...
+                </span>
+                <div className="flex items-center space-x-2 bg-muted rounded-md p-2">
+                  <ThinkingAnimation isSingleDocument={true} />
+                </div>
               </div>
             </div>
           )}
