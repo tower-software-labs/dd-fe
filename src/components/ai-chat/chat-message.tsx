@@ -12,7 +12,7 @@ export interface ChatMessageProps {
   content: string
   citations?: Citation[]
   onCitationClick?: (citation: Citation) => void
-  selectedItems?: DataroomItem[]
+  referenceItems?: DataroomItem[]
 }
 
 export default function ChatMessage({
@@ -20,7 +20,7 @@ export default function ChatMessage({
   content,
   citations = [],
   onCitationClick,
-  selectedItems,
+  referenceItems,
 }: ChatMessageProps) {
   const [isScrollable, setIsScrollable] = useState(false)
   const [showChevron, setShowChevron] = useState(true)
@@ -40,7 +40,7 @@ export default function ChatMessage({
     checkScrollable()
     window.addEventListener("resize", checkScrollable)
     return () => window.removeEventListener("resize", checkScrollable)
-  }, [selectedItems])
+  }, [referenceItems])
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -84,7 +84,7 @@ export default function ChatMessage({
   }
 
   function renderSelectedItems() {
-    if (!selectedItems || selectedItems.length === 0) {
+    if (!referenceItems || referenceItems.length === 0) {
       return null
     }
 
@@ -92,13 +92,13 @@ export default function ChatMessage({
       <div className="w-full mt-2 relative">
         <div
           ref={scrollContainerRef}
-          className="overflow-x-auto pb-4"
+          className={`overflow-x-auto ${isScrollable ? "pb-4" : ""}`}
           onScroll={handleScroll}
           onMouseEnter={() => setShowChevron(false)}
           onMouseLeave={() => setShowChevron(isScrollable)}
         >
           <div className="flex space-x-1.5 pr-4 whitespace-nowrap">
-            {selectedItems.map((item, index) => (
+            {referenceItems.map((item, index) => (
               <Badge
                 key={`item-${index}`}
                 variant="outline"

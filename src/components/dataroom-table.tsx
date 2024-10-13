@@ -22,6 +22,8 @@ import { useEffect, useState } from "react"
 
 export interface DataroomTableProps {
   items: DataroomItem[]
+  selectedItems: DataroomItem[]
+  setSelectedItems: React.Dispatch<React.SetStateAction<DataroomItem[]>>
 }
 
 const columnWidths = {
@@ -33,12 +35,15 @@ const columnWidths = {
   actions: "w-[9%]",
 }
 
-export default function DataroomTable({ items }: DataroomTableProps) {
+export default function DataroomTable({
+  items,
+  selectedItems,
+  setSelectedItems,
+}: DataroomTableProps) {
   const [curFolder, setCurFolder] = useState<DataroomItem | null>(null)
   const [listedItems, setListedItems] = useState<DataroomItem[]>([])
   const [document, setDocument] = useState<DocumentData>(sampleDocument)
   const [isDocumentPreviewOpen, setIsDocumentPreviewOpen] = useState(false)
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (!curFolder) {
@@ -60,21 +65,26 @@ export default function DataroomTable({ items }: DataroomTableProps) {
     }
   }
 
-  const handleCheckboxChange = (itemId: string) => {
+  const handleCheckboxChange = (item: DataroomItem) => {
     setSelectedItems((prevSelected) => {
-      const newSelected = new Set(prevSelected)
-      if (newSelected.has(itemId)) {
-        newSelected.delete(itemId)
+      const isItemSelected = prevSelected.some(
+        (selectedItem) => selectedItem.id === item.id,
+      )
+      if (isItemSelected) {
+        return prevSelected.filter(
+          (selectedItem) => selectedItem.id !== item.id,
+        )
       } else {
-        newSelected.add(itemId)
+        return [...prevSelected, item]
       }
-      return newSelected
     })
   }
 
   const getSelectedItemNames = () => {
     return listedItems
-      .filter((item) => selectedItems.has(item.id))
+      .filter((item) =>
+        selectedItems.some((selectedItem) => selectedItem.id === item.id),
+      )
       .map((item) => item.name)
   }
 
@@ -98,8 +108,10 @@ export default function DataroomTable({ items }: DataroomTableProps) {
             <TableRow key={item.id} className="py-2 cursor-pointer">
               <TableCell className={`py-4 pl-4 ${columnWidths.checkbox}`}>
                 <Checkbox
-                  checked={selectedItems.has(item.id)}
-                  onCheckedChange={() => handleCheckboxChange(item.id)}
+                  checked={selectedItems.some(
+                    (selectedItem) => selectedItem.id === item.id,
+                  )}
+                  onCheckedChange={() => handleCheckboxChange(item)}
                 />
               </TableCell>
               <TableCell
