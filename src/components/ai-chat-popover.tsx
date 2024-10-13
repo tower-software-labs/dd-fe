@@ -4,14 +4,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { DataroomItem } from "@/types/dataroom"
 import { MessageSquare } from "lucide-react"
 import { useState } from "react"
 import AIAssistantChat from "./ai-chat"
 
-export default function AIAssistantPopover() {
+export interface AIAssistantPopoverProps {
+  selectedDataroomItems: DataroomItem[]
+}
+
+export default function AIAssistantPopover({
+  selectedDataroomItems,
+}: AIAssistantPopoverProps) {
   const [isOpen, setIsOpen] = useState(false)
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setIsOpen(true)
+    }
+  }
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -25,7 +39,10 @@ export default function AIAssistantPopover() {
         className="w-[70lvh] h-[60lvh] p-2 flex flex-col"
         align="end"
       >
-        <AIAssistantChat onClose={() => setIsOpen(false)} />
+        <AIAssistantChat
+          onClose={() => setIsOpen(false)}
+          selectedDataroomItems={selectedDataroomItems}
+        />
       </PopoverContent>
     </Popover>
   )

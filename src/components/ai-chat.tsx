@@ -1,11 +1,21 @@
 import ChatMessage from "@/components/ai-chat/chat-message"
 import ThinkingAnimation from "@/components/ai-thinking-animation"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Message } from "@/types/chat"
+import { DataroomItem } from "@/types/dataroom"
 import { Citation, DocumentData } from "@/types/document"
-import { ChevronDown, Send, Sparkles, X } from "lucide-react"
+import {
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Folder,
+  Send,
+  Sparkles,
+  X,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 const initialMessages: Message[] = [
@@ -14,33 +24,14 @@ const initialMessages: Message[] = [
     content:
       "Hi, I'm Clausy - your AI legal assistant. I can help you review and summarize data room documents. How can I help?",
   },
-  {
-    sender: "ai",
-    content:
-      "For example, I can provide information about specific sections in documents. [citation]Here's a sample citation from the 'Change of Control' section on page 1.[citation]",
-    citations: [
-      {
-        id: "sample-citation-1",
-        fileName: "Sample Document",
-        highlightAreas: [
-          {
-            pageIndex: 1,
-            height: 30.55401,
-            width: 28.1674,
-            left: 18,
-            top: 15.0772,
-          },
-        ],
-      },
-    ],
-  },
 ]
 
 export interface AIAssistantChatProps {
   onClose: () => void
-  searchableDocuments: DocumentData[] // Add this prop to receive the document URL
+  searchableDocuments?: DocumentData[]
   closeButtonType?: "x" | "collapse"
   onCitationClick?: (citation: Citation) => void
+  selectedDataroomItems?: DataroomItem[]
 }
 
 export default function AIAssistantChat({
@@ -48,15 +39,22 @@ export default function AIAssistantChat({
   searchableDocuments = [],
   closeButtonType = "x",
   onCitationClick = (citation: Citation) => {},
+  selectedDataroomItems = [],
 }: AIAssistantChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const [showChevron, setShowChevron] = useState(true)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const handleSend = async () => {
     if (input.trim()) {
-      const userMessage: Message = { sender: "user", content: input }
+      const userMessage: Message = {
+        sender: "user",
+        content: input,
+        referenceItems: selectedDataroomItems,
+      }
       setMessages((prev) => [...prev, userMessage])
       setInput("")
       setIsLoading(true)
@@ -99,6 +97,71 @@ export default function AIAssistantChat({
     }
   }, [messages])
 
+  useEffect(() => {
+    const checkScrollable = () => {
+      if (scrollContainerRef.current) {
+        const isScrollable =
+          scrollContainerRef.current.scrollWidth >
+          scrollContainerRef.current.clientWidth
+        setShowChevron(isScrollable)
+      }
+    }
+
+    checkScrollable()
+    window.addEventListener("resize", checkScrollable)
+    return () => window.removeEventListener("resize", checkScrollable)
+  }, [selectedDataroomItems])
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current
+      setShowChevron(scrollLeft < scrollWidth - clientWidth - 10) // 10px threshold
+    }
+  }
+
+  function renderSelectedItems() {
+    if (selectedDataroomItems.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="w-full mb-2 relative">
+        <div
+          ref={scrollContainerRef}
+          className="overflow-x-auto pb-2"
+          onScroll={handleScroll}
+          onMouseEnter={() => setShowChevron(false)}
+          onMouseLeave={() => setShowChevron(true)}
+        >
+          <div className="flex space-x-1.5 pr-4 whitespace-nowrap">
+            {selectedDataroomItems.map((item, index) => (
+              <Badge
+                key={`item-${index}`}
+                variant="outline"
+                className="inline-flex items-center bg-white px-1 py-0"
+              >
+                {item.type === "folder" ? (
+                  <Folder className="w-3 h-3 mr-1 flex-shrink-0" />
+                ) : (
+                  <FileText className="w-3 h-3 mr-1 flex-shrink-0" />
+                )}
+                {item.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        {showChevron && (
+          <div className="absolute right-0 top-0 flex items-start pointer-events-none">
+            <div className="bg-black rounded-full p-0.5 shadow-md border-2 border-white relative">
+              <ChevronRight className="w-3 h-3 text-white" />
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
@@ -124,6 +187,7 @@ export default function AIAssistantChat({
               content={message.content}
               citations={message.citations}
               onCitationClick={onCitationClick}
+              referenceItems={message.referenceItems}
             />
           ))}
           {isLoading && (
@@ -140,6 +204,7 @@ export default function AIAssistantChat({
           )}
         </div>
       </ScrollArea>
+      {renderSelectedItems()}
       <div className="flex items-center space-x-2 mt-auto">
         <Input
           placeholder="Type your message..."

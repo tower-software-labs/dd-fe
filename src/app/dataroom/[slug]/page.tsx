@@ -36,6 +36,9 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
   const [numDocumentReferenceMissing, setNumDocumentReferenceMissing] =
     useState<number>(0)
   const [numTotalDocuments, setNumTotalDocuments] = useState<number>(0)
+  const [selectedDataroomItems, setSelectedDataroomItems] = useState<
+    DataroomItem[]
+  >([])
 
   useEffect(() => {
     setBreadcrumbs([
@@ -59,7 +62,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
           <Sparkles className="h-4 w-4" />
           Ask a question
         </span>
-        <AIAssistantPopover />
+        <AIAssistantPopover selectedDataroomItems={selectedDataroomItems} />
       </div>
       <div className="flex items-center gap-4 bg-slate-100 rounded-lg p-1 justify-start w-fit mb-4 ">
         <ToggleGroup
@@ -109,7 +112,11 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
           </PopoverContent>
         </Popover>
       </div>
-      <DataroomTable items={folders} />
+      <DataroomTable
+        items={folders}
+        selectedItems={selectedDataroomItems}
+        setSelectedItems={setSelectedDataroomItems}
+      />
     </div>
   )
 }
