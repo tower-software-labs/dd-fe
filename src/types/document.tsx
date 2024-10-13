@@ -7,6 +7,12 @@ export interface Note {
   highlightAreas: HighlightArea[]
 }
 
+export interface Citation {
+  id: string
+  fileName: string
+  highlightAreas: HighlightArea[]
+}
+
 export interface DocumentData {
   id: string
   name: string

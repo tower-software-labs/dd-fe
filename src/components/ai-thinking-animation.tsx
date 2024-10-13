@@ -311,10 +311,7 @@ export default function ThinkingAnimation({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-md">
-      <h2 className="text-lg font-bold mb-2 text-center">
-        AI Chatbot Thinking
-      </h2>
+    <div className="w-full max-w-md">
       <div className="relative h-1.5 bg-gray-200 rounded-full mb-3">
         <motion.div
           className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"

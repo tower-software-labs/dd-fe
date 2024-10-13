@@ -9,7 +9,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, Send, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DocumentData } from "@/types/document"
+import { Citation, DocumentData } from "@/types/document"
 import "@react-pdf-viewer/core/lib/styles/index.css"
 import "@react-pdf-viewer/default-layout/lib/styles/index.css"
 import "@react-pdf-viewer/highlight/lib/styles/index.css"
@@ -73,6 +73,10 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
 
   const { jumpToHighlightArea } = highlightPluginInstance
 
+  function handleCitationClick(citation: Citation) {
+    jumpToHighlightArea(citation.highlightAreas[0])
+  }
+
   const toggleLeftColumn = () => {
     setIsLeftColumnCollapsed(!isLeftColumnCollapsed)
   }
@@ -106,80 +110,83 @@ export default function PDFViewer({ document, onClose }: PDFViewerProps) {
               </div>
             </div>
             {!isLeftColumnCollapsed && (
-              <div className="flex-grow overflow-y-auto mr-4 space-y-6">
-                <div className="flex flex-col px-2">
-                  <div className="text-lg font-bold">{document.name}</div>
-                  <div className="text-md px text-slate-500 mb-2">
-                    {document.stateOfCause}
+              <div className="flex flex-col h-full">
+                <div className="flex-shrink-0 overflow-y-auto mr-4 space-y-6">
+                  <div className="flex flex-col px-2">
+                    <div className="text-lg font-bold">{document.name}</div>
+                    <div className="text-md px text-slate-500 mb-2">
+                      {document.stateOfCause}
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      {document.summary}
+                    </div>
                   </div>
-                  <div className="text-sm text-slate-500">
-                    {document.summary}
+                  {document.issues.length > 0 && (
+                    <Collapsible>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-between font-semibold text-md p-2 mb-4"
+                        >
+                          Issues ({document.issues.length})
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="flex flex-col gap-2">
+                        {document.issues.map((issue) => (
+                          <div
+                            key={issue.id}
+                            onClick={() =>
+                              jumpToHighlightArea(issue.highlightAreas[0])
+                            }
+                            className="cursor-pointer hover:bg-gray-100 p-2 rounded"
+                          >
+                            <div className="font-semibold text-sm">
+                              {issue.header}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {issue.body}
+                            </div>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+                <div className="flex-grow mt-4 flex flex-col justify-end">
+                  <div
+                    className={`transition-all duration-300 ease-in-out w-full ${
+                      isAIChatExpanded ? "flex-grow" : "h-[40px]"
+                    }`}
+                  >
+                    {isAIChatExpanded ? (
+                      <div className="h-full opacity-100 transition-opacity duration-300 mr-4">
+                        <AIAssistantChat
+                          onClose={() => setIsAIChatExpanded(false)}
+                          searchableDocuments={[document]}
+                          closeButtonType="collapse"
+                          onCitationClick={handleCitationClick}
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 opacity-100 transition-opacity duration-300 mr-4">
+                        <Input
+                          placeholder="Ask Clausy AI about this document"
+                          onFocus={() => setIsAIChatExpanded(true)}
+                        />
+                        <Button
+                          size="icon"
+                          onClick={() => setIsAIChatExpanded(true)}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
-                {document.issues.length > 0 && (
-                  <Collapsible>
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-between font-semibold text-md p-2 mb-4"
-                      >
-                        Issues ({document.issues.length})
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="flex flex-col gap-2">
-                      {document.issues.map((issue) => (
-                        <div
-                          key={issue.id}
-                          onClick={() =>
-                            jumpToHighlightArea(issue.highlightAreas[0])
-                          }
-                          className="cursor-pointer hover:bg-gray-100 p-2 rounded"
-                        >
-                          <div className="font-semibold text-sm">
-                            {issue.header}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {issue.body}
-                          </div>
-                        </div>
-                      ))}
-                    </CollapsibleContent>
-                  </Collapsible>
-                )}
               </div>
             )}
           </div>
-          {!isLeftColumnCollapsed && (
-            <div className="mt-auto">
-              <div
-                className={`transition-all duration-300 ease-in-out w-full ${isAIChatExpanded ? "h-[50svh]" : "h-[40px]"}`}
-              >
-                {isAIChatExpanded ? (
-                  <div className="h-full opacity-100 transition-opacity duration-300 mr-4">
-                    <AIAssistantChat
-                      onClose={() => setIsAIChatExpanded(false)}
-                      searchableDocuments={[document]}
-                      closeButtonType="collapse"
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2 opacity-100 transition-opacity duration-300 mr-4">
-                    <Input
-                      placeholder="Ask Clausy AI about this document"
-                      onFocus={() => setIsAIChatExpanded(true)}
-                    />
-                    <Button
-                      size="icon"
-                      onClick={() => setIsAIChatExpanded(true)}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className={`${isLeftColumnCollapsed ? "flex-grow" : "w-2/3"}`}>
