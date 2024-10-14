@@ -1,42 +1,21 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  BellIcon,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  CornerDownRight,
-  HourglassIcon,
-  ListTodo,
-  Pencil,
-  Plus,
-} from "lucide-react"
-import Link from "next/link"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+import { ChevronDown, ChevronRight, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { initialSections } from "@/app/sample-data/tasks"
 import AddTaskForm from "@/components/add-task-form"
+import {
+  addNewTaskProps,
+  RequestListTableHeader,
+  RequestListTaskRow,
+} from "@/components/request-list-table"
 import SelectUserPopover from "@/components/select-user-popover"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { useProject } from "@/providers/project-provider"
-import { Section, Task, TaskState } from "@/types/task"
-import { User } from "@/types/user"
+import { Section, Task } from "@/types/task"
 
 const columnWidths = {
   taskName: "w-1/2",
@@ -76,12 +55,8 @@ export default function DueDiligenceDashboard({
     )
   }
 
-  const updateTask = (
-    sectionId: string,
-    taskId: string,
-    field: keyof Task,
-    value: any,
-  ) => {
+  function updateTask(taskId: string, field: keyof Task, value: any): void {
+    const sectionId = taskId.split(".")[0]
     setSections((prevSections) =>
       prevSections.map((section) =>
         section.id === sectionId
@@ -113,13 +88,13 @@ export default function DueDiligenceDashboard({
     setExpandedSections([...expandedSections, newSectionId])
   }
 
-  function addNewTask(
-    sectionId: string,
-    taskDescription: string,
-    taskTitle: string,
-    taskAssignee: User | null = null,
-    parentTaskId?: string,
-  ) {
+  function addNewTask({
+    sectionId,
+    description,
+    title,
+    assignee,
+    parentTaskId,
+  }: addNewTaskProps) {
     setSections((prevSections) =>
       prevSections.map((section) => {
         if (section.id === sectionId) {
@@ -145,10 +120,10 @@ export default function DueDiligenceDashboard({
 
           const newTask: Task = {
             id: newTaskId,
-            title: taskTitle,
-            description: taskDescription,
+            title: title,
+            description: description,
             state: null,
-            assignee: taskAssignee,
+            assignee: assignee,
             stakeholderStatus: "buyside",
             parentTaskId: parentTaskId || undefined,
           }
@@ -157,52 +132,6 @@ export default function DueDiligenceDashboard({
         return section
       }),
     )
-  }
-
-  function getStateIcon(state: string) {
-    switch (state) {
-      case "sellside":
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HourglassIcon className="h-5 w-5 text-blue-400" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Waiting for Sellside review</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )
-      case "buyside":
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <ListTodo className="h-5 w-5 text-orange-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Requires Buyside review</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )
-      case "verified":
-        return (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Verified</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )
-      default:
-        return null
-    }
   }
 
   return (
@@ -215,21 +144,7 @@ export default function DueDiligenceDashboard({
       </div>
       <div className="border rounded-lg overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className={columnWidths.taskName}>Request</TableHead>
-              <TableHead className={columnWidths.state}>
-                Not Applicable
-              </TableHead>
-              <TableHead className={columnWidths.state}>
-                To Be Provided
-              </TableHead>
-              <TableHead className={columnWidths.state}>Provided</TableHead>
-              <TableHead className={columnWidths.assignee}>Assignee</TableHead>
-              <TableHead className={columnWidths.taskState}>Status</TableHead>
-              <TableHead className={columnWidths.button}></TableHead>
-            </TableRow>
-          </TableHeader>
+          <RequestListTableHeader />
           <TableBody>
             {sections.map((section) => (
               <>
@@ -269,12 +184,12 @@ export default function DueDiligenceDashboard({
                           section.tasks[section.tasks.length - 1]?.id
                         }
                         onSave={(newTask) => {
-                          addNewTask(
-                            section.id,
-                            newTask.description,
-                            newTask.title,
-                            newTask.assignee,
-                          )
+                          addNewTask({
+                            sectionId: section.id,
+                            description: newTask.description,
+                            title: newTask.title,
+                            assignee: newTask.assignee,
+                          })
                         }}
                       />
                     </div>
@@ -282,146 +197,11 @@ export default function DueDiligenceDashboard({
                 </TableRow>
                 {expandedSections.includes(section.id) &&
                   section.tasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex flex-row items-start pl-1">
-                          {task.parentTaskId && (
-                            <div>
-                              <CornerDownRight className="h-4 w-4 mr-2 text-muted-foreground" />
-                            </div>
-                          )}
-                          <span className="pr-2 font-mono font-bold">
-                            {task.id}
-                          </span>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{task.title}</span>
-                            <span className="text-sm text-muted-foreground pr-2">
-                              {task.description}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <RadioGroup
-                          value={task?.state ?? undefined}
-                          onValueChange={(value) =>
-                            updateTask(
-                              section.id,
-                              task.id,
-                              "state",
-                              value as TaskState,
-                            )
-                          }
-                          className="flex items-center space-x-1"
-                        >
-                          <RadioGroupItem
-                            value="Not Applicable"
-                            id={`${task.id}-na`}
-                            className="data-[state=checked]:bg-black data-[state=checked]:text-white"
-                          />
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell>
-                        <RadioGroup
-                          value={task?.state ?? undefined}
-                          onValueChange={(value) =>
-                            updateTask(
-                              section.id,
-                              task.id,
-                              "state",
-                              value as TaskState,
-                            )
-                          }
-                          className="flex items-center space-x-1"
-                        >
-                          <RadioGroupItem
-                            value="To Be Provided"
-                            id={`${task.id}-np`}
-                            className="data-[state=checked]:bg-black data-[state=checked]:text-white"
-                          />
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell>
-                        <RadioGroup
-                          value={task?.state ?? undefined}
-                          onValueChange={(value) =>
-                            updateTask(
-                              section.id,
-                              task.id,
-                              "state",
-                              value as TaskState,
-                            )
-                          }
-                          className="flex items-center space-x-1"
-                        >
-                          <RadioGroupItem
-                            value="Provided"
-                            id={`${task.id}-p`}
-                            className="data-[state=checked]:bg-black data-[state=checked]:text-white"
-                          />
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell>
-                        <SelectUserPopover
-                          selectedUserId={task.assignee?.id}
-                          setSelectedUserId={(value: string | null) =>
-                            updateTask(section.id, task.id, "assignee", value)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {getStateIcon(task.stakeholderStatus)}
-                      </TableCell>
-                      <TableCell className="group relative">
-                        <div className="flex items-center justify-end h-full">
-                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <AddTaskForm
-                              onSave={(newTask) => {
-                                addNewTask(
-                                  section.id,
-                                  newTask.description,
-                                  newTask.title,
-                                  newTask.assignee,
-                                  task.id, // Pass the parent task ID
-                                )
-                              }}
-                              sectionId={section.id}
-                              previousTaskId={task.id}
-                              buttonType="supplemental"
-                            />
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <BellIcon className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Send Reminder</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button variant="ghost" size="icon">
-                                    <Pencil className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Edit</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <Link href={`/task/${task.id}`} passHref>
-                            <Button variant="ghost" size="icon">
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                    <RequestListTaskRow
+                      task={task}
+                      updateTask={updateTask}
+                      addNewTask={addNewTask}
+                    />
                   ))}
               </>
             ))}

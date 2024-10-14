@@ -3,8 +3,14 @@
 import { folders } from "@/app/sample-data/dataroom"
 import { tasks } from "@/app/sample-data/tasks"
 import DataroomTable from "@/components/dataroom-table"
+import {
+  addNewTaskProps,
+  RequestListTableHeader,
+  RequestListTaskRow,
+} from "@/components/request-list-table"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Table, TableBody } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { Task, TaskState } from "@/types/task"
@@ -23,8 +29,30 @@ export default function TaskPage({ params }: TaskPageProps) {
   const [task, setTask] = useState<Task | null>(null)
   const [subtasks, setSubtasks] = useState<Task[]>([])
 
-  const updateTask = (field: keyof Task, value: any) => {
+  function updateTask(field: keyof Task, value: any) {
     setTask((prevTask) => (prevTask ? { ...prevTask, [field]: value } : null))
+  }
+
+  function updateSubtask(taskId: string, field: keyof Task, value: any) {
+    setSubtasks((prevSubtasks) =>
+      prevSubtasks.map((subtask) =>
+        subtask.id === taskId ? { ...subtask, [field]: value } : subtask,
+      ),
+    )
+  }
+
+  function addSubtask({ description, title, assignee }: addNewTaskProps) {
+    if (!task) return
+    const newTask: Task = {
+      id: `${task.id}.${subtasks.length + 1}`,
+      title: title,
+      description: description,
+      state: null,
+      assignee: assignee,
+      stakeholderStatus: "buyside",
+      parentTaskId: task.id,
+    }
+    setSubtasks([...subtasks, newTask])
   }
 
   useEffect(() => {
@@ -43,7 +71,7 @@ export default function TaskPage({ params }: TaskPageProps) {
     ])
   }, [setBreadcrumbs, task])
   return (
-    <div className="container mx-auto py-10 space-y-8">
+    <div className="container mx-auto py-10 space-y-10">
       <div className="space-y-8 border border-gray-200 p-6 rounded-lg">
         <div className="space-y-2 mb-6">
           <div className="flex justify-between items-center">
@@ -83,6 +111,31 @@ export default function TaskPage({ params }: TaskPageProps) {
             value={task?.sellsideComments ?? ""}
             onChange={(e) => updateTask("sellsideComments", e.target.value)}
           />
+        </div>
+      </div>
+      <div className="space-y-2 mt-4">
+        <span className="text-lg font-bold">Supplemental Requests</span>
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <RequestListTableHeader
+              showAddTaskForm={true}
+              sectionId={task?.id ?? ""}
+              previousTaskId={subtasks[subtasks.length - 1]?.id ?? ""}
+              onSave={(newTask) => {
+                addSubtask(newTask)
+              }}
+            />
+            <TableBody>
+              {subtasks.map((subtask) => (
+                <RequestListTaskRow
+                  key={subtask.id}
+                  task={subtask}
+                  updateTask={updateSubtask}
+                  addNewTask={addSubtask}
+                />
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
       <div className="space-y-2 mt-4">
