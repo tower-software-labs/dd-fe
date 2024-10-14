@@ -1,31 +1,27 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { CheckCircle2, ChevronDown, ChevronRight, Plus } from "lucide-react"
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table"
+import { ChevronDown, ChevronRight, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { initialSections } from "@/app/sample-data/tasks"
 import AddTaskForm from "@/components/add-task-form"
+import {
+  addNewTaskProps,
+  RequestListTableHeader,
+  RequestListTaskRow,
+} from "@/components/request-list-table"
 import SelectUserPopover from "@/components/select-user-popover"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { useProject } from "@/providers/project-provider"
-import { Section, Task, TaskState } from "@/types/task"
-import { User } from "@/types/user"
+import { Section, Task } from "@/types/task"
 
 const columnWidths = {
   taskName: "w-1/2",
   state: "w-1/12",
   assignee: "w-1/12",
-  verified: "w-1/12",
+  taskState: "w-1/12",
   button: "w-1/12",
 }
 
@@ -59,12 +55,8 @@ export default function DueDiligenceDashboard({
     )
   }
 
-  const updateTask = (
-    sectionId: string,
-    taskId: string,
-    field: keyof Task,
-    value: any,
-  ) => {
+  function updateTask(taskId: string, field: keyof Task, value: any): void {
+    const sectionId = taskId.split(".")[0]
     setSections((prevSections) =>
       prevSections.map((section) =>
         section.id === sectionId
@@ -79,11 +71,11 @@ export default function DueDiligenceDashboard({
     )
   }
 
-  const toggleAssigneeEdit = (taskId: string) => {
+  function toggleAssigneeEdit(taskId: string) {
     setEditingAssignee(editingAssignee === taskId ? null : taskId)
   }
 
-  const addNewSection = () => {
+  function addNewSection() {
     const newSectionId = (
       parseInt(sections[sections.length - 1].id) + 1
     ).toString()
@@ -96,23 +88,44 @@ export default function DueDiligenceDashboard({
     setExpandedSections([...expandedSections, newSectionId])
   }
 
-  const addNewTask = (
-    sectionId: string,
-    taskDescription: string,
-    taskTitle: string,
-    taskAssignee: User | null = null,
-  ) => {
+  function addNewTask({
+    sectionId,
+    description,
+    title,
+    assignee,
+    parentTaskId,
+  }: addNewTaskProps) {
     setSections((prevSections) =>
       prevSections.map((section) => {
         if (section.id === sectionId) {
-          const newTaskId = `${sectionId}.${section.tasks.length + 1}`
+          let newTaskId: string
+          if (parentTaskId) {
+            // Adding a subtask
+            const parentTask = section.tasks.find(
+              (task) => task.id === parentTaskId,
+            )
+            if (parentTask) {
+              const subtaskCount = section.tasks.filter(
+                (task) => task.parentTaskId === parentTaskId,
+              ).length
+              newTaskId = `${parentTaskId}.${subtaskCount + 1}`
+            } else {
+              // If parent task not found, fallback to adding a regular task
+              newTaskId = `${sectionId}.${section.tasks.length + 1}`
+            }
+          } else {
+            // Adding a regular task
+            newTaskId = `${sectionId}.${section.tasks.length + 1}`
+          }
+
           const newTask: Task = {
             id: newTaskId,
-            title: taskTitle,
-            description: taskDescription,
+            title: title,
+            description: description,
             state: null,
-            assignee: null,
-            verified: false,
+            assignee: assignee,
+            stakeholderStatus: "buyside",
+            parentTaskId: parentTaskId || undefined,
           }
           return { ...section, tasks: [...section.tasks, newTask] }
         }
@@ -124,28 +137,14 @@ export default function DueDiligenceDashboard({
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Due Diligence Dashboard</h1>
+        <h1 className="text-2xl font-bold">Due Diligence Request List</h1>
         <Button onClick={addNewSection}>
           <Plus className="mr-2 h-4 w-4" /> Add New Section
         </Button>
       </div>
       <div className="border rounded-lg overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className={columnWidths.taskName}>Task</TableHead>
-              <TableHead className={columnWidths.state}>
-                Not Applicable
-              </TableHead>
-              <TableHead className={columnWidths.state}>
-                To Be Provided
-              </TableHead>
-              <TableHead className={columnWidths.state}>Provided</TableHead>
-              <TableHead className={columnWidths.assignee}>Assignee</TableHead>
-              <TableHead className={columnWidths.verified}>Verified</TableHead>
-              <TableHead className={columnWidths.button}></TableHead>
-            </TableRow>
-          </TableHeader>
+          <RequestListTableHeader />
           <TableBody>
             {sections.map((section) => (
               <>
@@ -164,7 +163,10 @@ export default function DueDiligenceDashboard({
                         ) : (
                           <ChevronRight className="mr-2 h-4 w-4" />
                         )}
-                        {section.id}. {section.title}
+                        <span className="pr-2 font-mono font-bold">
+                          {section.id}
+                        </span>
+                        {section.title}
                       </div>
                     </div>
                   </TableCell>
@@ -182,12 +184,12 @@ export default function DueDiligenceDashboard({
                           section.tasks[section.tasks.length - 1]?.id
                         }
                         onSave={(newTask) => {
-                          addNewTask(
-                            section.id,
-                            newTask.description,
-                            newTask.title,
-                            newTask.assignee,
-                          )
+                          addNewTask({
+                            sectionId: section.id,
+                            description: newTask.description,
+                            title: newTask.title,
+                            assignee: newTask.assignee,
+                          })
                         }}
                       />
                     </div>
@@ -195,110 +197,11 @@ export default function DueDiligenceDashboard({
                 </TableRow>
                 {expandedSections.includes(section.id) &&
                   section.tasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          {task.id} {task.title}
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {task.description}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <RadioGroup
-                          value={task.state}
-                          onValueChange={(value) =>
-                            updateTask(
-                              section.id,
-                              task.id,
-                              "state",
-                              value as TaskState,
-                            )
-                          }
-                          className="flex items-center space-x-1"
-                        >
-                          <RadioGroupItem
-                            value="Not Applicable"
-                            id={`${task.id}-na`}
-                          />
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell>
-                        <RadioGroup
-                          value={task.state}
-                          onValueChange={(value) =>
-                            updateTask(
-                              section.id,
-                              task.id,
-                              "state",
-                              value as TaskState,
-                            )
-                          }
-                          className="flex items-center space-x-1"
-                        >
-                          <RadioGroupItem
-                            value="To Be Provided"
-                            id={`${task.id}-np`}
-                          />
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell>
-                        <RadioGroup
-                          value={task.state}
-                          onValueChange={(value) =>
-                            updateTask(
-                              section.id,
-                              task.id,
-                              "state",
-                              value as TaskState,
-                            )
-                          }
-                          className="flex items-center space-x-1"
-                        >
-                          <RadioGroupItem
-                            value="Provided"
-                            id={`${task.id}-p`}
-                          />
-                        </RadioGroup>
-                      </TableCell>
-                      <TableCell>
-                        <SelectUserPopover
-                          selectedUserId={task.assignee?.id}
-                          setSelectedUserId={(value: string | null) =>
-                            updateTask(section.id, task.id, "assignee", value)
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {task.verified ? (
-                          <CheckCircle2 className="h-5 w-5 m-2 text-green-500" />
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              updateTask(section.id, task.id, "verified", true)
-                            }
-                          >
-                            <CheckCircle2 className="h-5 w-5 text-slate-200" />
-                          </Button>
-                        )}
-                      </TableCell>
-                      <TableCell className="flex items-center justify-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            // TODO: Implement navigation to task details page
-                            console.log(
-                              `Navigate to details for task ${task.id}`,
-                            )
-                          }}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                    <RequestListTaskRow
+                      task={task}
+                      updateTask={updateTask}
+                      addNewTask={addNewTask}
+                    />
                   ))}
               </>
             ))}

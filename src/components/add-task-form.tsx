@@ -10,24 +10,30 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Task } from "@/types/task"
 import { User } from "@/types/user"
-import { Plus } from "lucide-react"
+import { CornerDownRight, Plus } from "lucide-react"
 import { useState } from "react"
 
 interface AddTaskFormProps {
   onSave: (task: Omit<Task, "id" | "state" | "verified">) => void
   sectionId: string
   previousTaskId: string
+  buttonType?: "request" | "supplemental"
 }
 
 export default function AddTaskForm({
   onSave,
   sectionId,
   previousTaskId,
+  buttonType = "request",
 }: AddTaskFormProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [assignee, setAssignee] = useState<User | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+
+  const handleButtonClick = () => {
+    setIsOpen(true)
+  }
 
   const handleCancel = () => {
     setIsOpen(false)
@@ -43,7 +49,7 @@ export default function AddTaskForm({
       description,
       assignee,
       state: null,
-      verified: false,
+      stakeholderStatus: "sellside",
     }
     onSave(newTask)
     if (andAddAnother) {
@@ -58,9 +64,15 @@ export default function AddTaskForm({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add Task
-        </Button>
+        {buttonType === "request" ? (
+          <Button variant="outline" size="sm" onClick={handleButtonClick}>
+            <Plus className="mr-2 h-4 w-4" /> Add Request
+          </Button>
+        ) : (
+          <Button variant="ghost" size="icon" onClick={handleButtonClick}>
+            <CornerDownRight className="h-4 w-4" />
+          </Button>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-96" align="end" sideOffset={5}>
         <div className="grid gap-4 space-y-2">
@@ -69,7 +81,7 @@ export default function AddTaskForm({
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
-                placeholder="Enter task title"
+                placeholder="Enter request title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -78,7 +90,7 @@ export default function AddTaskForm({
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Enter task description"
+                placeholder="Enter request description"
                 value={description}
                 rows={4}
                 onChange={(e) => setDescription(e.target.value)}
