@@ -5,4 +5,5 @@ export type User = {
   title: string
   email: string
   avatar_url?: string
+  is_sellside?: boolean
 }

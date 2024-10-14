@@ -10,6 +10,7 @@ import {
   getUserInitialsString,
 } from "@/helpers/user-utils"
 import { User } from "@/types/user"
+import { UserIcon } from "lucide-react"
 
 interface UserAvatarProps {
   user: User
@@ -27,14 +28,21 @@ export default function UserAvatar({
   const userDisplayString = getUserDisplayString(user)
 
   const sizeClasses = {
-    sm: "w-5 h-5 text-[9px]",
+    sm: "w-6 h-6 text-[9px]",
     md: "w-8 h-8 text-xs",
     lg: "w-12 h-12 text-sm",
   }
 
+  const badgeSizeClasses = {
+    sm: "w-5 h-5",
+    md: "w-5 h-5",
+    lg: "w-6 h-6",
+  }
+
   const avatarSizeClass = sizeClasses[size]
+  const badgeSizeClass = badgeSizeClasses[size]
   const textSizeClass =
-    size === "sm" ? "text-sm" : size === "md" ? "text-base" : "text-lg"
+    size === "sm" ? "text-xs" : size === "md" ? "text-base" : "text-lg"
   const titleSizeClass =
     size === "sm" ? "text-xs" : size === "md" ? "text-sm" : "text-base"
 
@@ -43,12 +51,23 @@ export default function UserAvatar({
       <Tooltip>
         <TooltipTrigger>
           <div className={`flex items-center gap-1.5 ${textSizeClass}`}>
-            <Avatar className={`inline-block ${avatarSizeClass}`}>
-              <AvatarImage src={user.avatar_url} alt={userDisplayString} />
-              <AvatarFallback>{getUserInitialsString(user)}</AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className={`inline-block ${avatarSizeClass}`}>
+                <AvatarImage src={user.avatar_url} alt={userDisplayString} />
+                <AvatarFallback>{getUserInitialsString(user)}</AvatarFallback>
+              </Avatar>
+              {user.is_sellside && (
+                <div
+                  className={`absolute -bottom-1.5 -right-1.5 ${badgeSizeClass} bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white`}
+                >
+                  <UserIcon className="w-3/4 h-3/4 text-primary-foreground" />
+                </div>
+              )}
+            </div>
             {showFullName && (
-              <div className={`flex flex-col items-start ${className}`}>
+              <div
+                className={`flex flex-col items-start space-y-2 ${className}`}
+              >
                 <span className="font-medium text-left">
                   {userDisplayString}
                 </span>
@@ -69,6 +88,7 @@ export default function UserAvatar({
           )}
           {!showFullName && user.title && <span>{user.title}</span>}
           {user.email && <span>{user.email}</span>}
+          {user.is_sellside && <span className="font-semibold">Sellside</span>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
