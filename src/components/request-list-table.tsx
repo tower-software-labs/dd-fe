@@ -167,7 +167,7 @@ export function RequestListTaskRow({
       </TableCell>
       <TableCell>
         <SelectUserPopover
-          selectedUserId={task.assignee?.id}
+          selectedUserId={task.assignee?.id ?? null}
           setSelectedUserId={(value: string | null) =>
             updateTask(task.id, "assignee", value)
           }
