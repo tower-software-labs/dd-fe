@@ -399,6 +399,7 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
         items={folders}
         selectedItems={selectedDataroomItems}
         setSelectedItems={setSelectedDataroomItems}
+        showBreadcrumbs={true}
       />
     </div>
   )

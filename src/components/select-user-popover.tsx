@@ -26,14 +26,20 @@ export interface SelectUserPopoverProps {
   selectedUser: User | null
   setSelectedUser: (value: User | null) => void
   showTextInTrigger?: boolean
+  size?: "sm" | "md" | "lg"
+  iconColor?: string
 }
 
 export default function SelectUserPopover({
   selectedUser,
   setSelectedUser,
   showTextInTrigger = false,
+  size = "md",
+  iconColor = "text-slate-200",
 }: SelectUserPopoverProps) {
   const [open, setOpen] = useState(false)
+
+  const iconSize = size === "sm" ? 4 : size === "md" ? 6 : 8
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -43,11 +49,13 @@ export default function SelectUserPopover({
             <UserAvatar
               user={selectedUser}
               showFullName={showTextInTrigger}
-              size="md"
+              size={size}
             />
           ) : (
             <div className="flex items-center gap-x-2">
-              <UserRoundPlus className="h-6 w-6 text-slate-200" />
+              <UserRoundPlus
+                className={`h-${iconSize} w-${iconSize} ${iconColor}`}
+              />
               {showTextInTrigger && (
                 <span className="text-base text-slate-600">
                   Select Assignee
@@ -68,9 +76,13 @@ export default function SelectUserPopover({
                   key={user.id}
                   value={user.id}
                   onSelect={(currentValue) => {
-                    setSelectedUser(
-                      users.find((user) => user.id === currentValue) || null,
-                    )
+                    if (selectedUser?.id === currentValue) {
+                      setSelectedUser(null)
+                    } else {
+                      setSelectedUser(
+                        users.find((user) => user.id === currentValue) || null,
+                      )
+                    }
                     setOpen(false)
                   }}
                 >
