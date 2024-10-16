@@ -1,3 +1,5 @@
+import { User } from "./user"
+
 export type FlagType =
   | "expiration"
   | "page-missing"
@@ -24,6 +26,7 @@ export interface DataroomItem {
   createdAt: string
   updatedAt: string
   flags: Flag[]
+  assignee?: User
 }
 
 export function createDataroomItem(

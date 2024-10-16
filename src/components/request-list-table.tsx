@@ -102,10 +102,16 @@ export function RequestListTaskRow({
   addNewTask,
 }: RequestListTaskRowProps) {
   const sectionId = task.id.split(".")[0]
+  const subTaskLevel = task.id.split(".").length - 2
   return (
     <TableRow key={task.id}>
       <TableCell className="font-medium">
-        <div className="flex flex-row items-start pl-1">
+        <div
+          className={`flex flex-row items-start pl-${Math.max(
+            subTaskLevel * 4,
+            1,
+          )}`}
+        >
           {task.parentTaskId && (
             <div>
               <CornerDownRight className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -167,8 +173,8 @@ export function RequestListTaskRow({
       </TableCell>
       <TableCell>
         <SelectUserPopover
-          selectedUserId={task.assignee?.id}
-          setSelectedUserId={(value: string | null) =>
+          selectedUser={task.assignee ?? null}
+          setSelectedUser={(value: User | null) =>
             updateTask(task.id, "assignee", value)
           }
         />

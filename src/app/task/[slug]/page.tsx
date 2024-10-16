@@ -2,6 +2,7 @@
 
 import { folders } from "@/app/sample-data/dataroom"
 import { tasks } from "@/app/sample-data/tasks"
+import { users } from "@/app/sample-data/users"
 import DataroomTable from "@/components/dataroom-table"
 import {
   addNewTaskProps,
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { Task, TaskState } from "@/types/task"
+import { User } from "@/types/user"
 import { BellIcon, FolderClosed, Pencil, Save } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -46,9 +48,23 @@ export default function TaskPage({ params }: TaskPageProps) {
   function updateSubtask(taskId: string, field: keyof Task, value: any) {
     setSubtasks((prevSubtasks) =>
       prevSubtasks.map((subtask) =>
-        subtask.id === taskId ? { ...subtask, [field]: value } : subtask,
+        subtask.id === taskId
+          ? {
+              ...subtask,
+              [field]:
+                field === "assignee"
+                  ? users.find((u) => u.id === value) || null
+                  : value,
+            }
+          : subtask,
       ),
     )
+    if (field === "assignee") {
+      const user = users.find((user) => user.id === value)
+      setTask((prevTask) =>
+        prevTask ? { ...prevTask, assignee: user ?? null } : null,
+      )
+    }
   }
 
   function handleSave() {
@@ -106,8 +122,8 @@ export default function TaskPage({ params }: TaskPageProps) {
               )}
               <div className="mt-2 ml-4">
                 <SelectUserPopover
-                  selectedUserId={task?.assignee?.id ?? null}
-                  setSelectedUserId={(value: string | null) =>
+                  selectedUser={task?.assignee ?? null}
+                  setSelectedUser={(value: User | null) =>
                     updateTask("assignee", value)
                   }
                 />

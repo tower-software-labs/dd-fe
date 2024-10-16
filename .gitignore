@@ -134,3 +134,5 @@ dist
 notebooks
 .ipynb_checkpoints
 deno.lock
+
+**/.DS_Store

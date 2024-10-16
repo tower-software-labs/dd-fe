@@ -20,25 +20,26 @@ import { cn } from "@/lib/utils"
 import { User } from "@/types/user"
 import { CommandList } from "cmdk"
 import { Check, UserRoundPlus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 export interface SelectUserPopoverProps {
-  selectedUserId: string | null
-  setSelectedUserId: (value: string | null) => void
+  selectedUser: User | null
+  setSelectedUser: (value: User | null) => void
   showTextInTrigger?: boolean
+  size?: "sm" | "md" | "lg"
+  iconColor?: string
 }
 
 export default function SelectUserPopover({
-  selectedUserId,
-  setSelectedUserId,
+  selectedUser,
+  setSelectedUser,
   showTextInTrigger = false,
+  size = "md",
+  iconColor = "text-slate-200",
 }: SelectUserPopoverProps) {
   const [open, setOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
-  useEffect(() => {
-    setSelectedUser(users.find((user) => user.id === selectedUserId) || null)
-  }, [selectedUserId])
+  const iconSize = size === "sm" ? 4 : size === "md" ? 6 : 8
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -48,11 +49,13 @@ export default function SelectUserPopover({
             <UserAvatar
               user={selectedUser}
               showFullName={showTextInTrigger}
-              size="md"
+              size={size}
             />
           ) : (
             <div className="flex items-center gap-x-2">
-              <UserRoundPlus className="h-6 w-6 text-slate-200" />
+              <UserRoundPlus
+                className={`h-${iconSize} w-${iconSize} ${iconColor}`}
+              />
               {showTextInTrigger && (
                 <span className="text-base text-slate-600">
                   Select Assignee
@@ -73,16 +76,22 @@ export default function SelectUserPopover({
                   key={user.id}
                   value={user.id}
                   onSelect={(currentValue) => {
-                    setSelectedUserId(
-                      currentValue === selectedUserId ? null : currentValue,
-                    )
+                    if (selectedUser?.id === currentValue) {
+                      setSelectedUser(null)
+                    } else {
+                      setSelectedUser(
+                        users.find((user) => user.id === currentValue) || null,
+                      )
+                    }
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
+                      selectedUser?.id === user.id
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                   {getUserDisplayString(user)}

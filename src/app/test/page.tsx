@@ -45,7 +45,7 @@ export default function ChatPreview() {
       <ChatMessage
         sender="user"
         content="Can you summarize the key points from the financial report and the marketing strategy document?"
-        selectedItems={selectedItems}
+        referenceItems={selectedItems}
       />
       <ChatMessage
         sender="ai"

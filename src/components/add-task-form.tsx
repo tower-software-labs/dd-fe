@@ -98,10 +98,8 @@ export default function AddTaskForm({
             </div>
             <div>
               <SelectUserPopover
-                selectedUserId={assignee?.id ?? null}
-                setSelectedUserId={(userId) =>
-                  setAssignee(userId ? ({ id: userId } as User) : null)
-                }
+                selectedUser={assignee ?? null}
+                setSelectedUser={(user) => setAssignee(user)}
                 showTextInTrigger
               />
             </div>
