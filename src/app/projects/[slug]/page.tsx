@@ -16,6 +16,7 @@ import SelectUserPopover from "@/components/select-user-popover"
 import { useBreadcrumbs } from "@/providers/breadcrumb-provider"
 import { useProject } from "@/providers/project-provider"
 import { Section, Task } from "@/types/task"
+import { User } from "@/types/user"
 
 const columnWidths = {
   taskName: "w-1/2",
@@ -33,6 +34,9 @@ export default function DueDiligenceDashboard({
   const [sections, setSections] = useState<Section[]>([])
   const [expandedSections, setExpandedSections] = useState<string[]>([])
   const [editingAssignee, setEditingAssignee] = useState<string | null>(null)
+  const [assigneeForAllTasks, setAssigneeForAllTasks] = useState<
+    Record<string, User | null>
+  >({})
   const { setBreadcrumbs } = useBreadcrumbs()
   const { setProjectId } = useProject()
 
@@ -46,6 +50,13 @@ export default function DueDiligenceDashboard({
     setSections(initialSections)
     setExpandedSections(initialSections.map((section) => section.id))
   }, [setBreadcrumbs])
+
+  useEffect(() => {
+    sections.forEach((section) => {
+      const assignee = getAssigneeForAllTasksInSection(section)
+      setAssigneeForAllTasks((prev) => ({ ...prev, [section.id]: assignee }))
+    })
+  }, [sections])
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) =>
@@ -69,6 +80,33 @@ export default function DueDiligenceDashboard({
           : section,
       ),
     )
+  }
+
+  const updateAllTasksInSection = (
+    sectionId: string,
+    field: keyof Task,
+    value: any,
+  ): void => {
+    setSections((prevSections) =>
+      prevSections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              tasks: section.tasks.map((task) => ({ ...task, [field]: value })),
+            }
+          : section,
+      ),
+    )
+  }
+
+  function getAssigneeForAllTasksInSection(section: Section): User | null {
+    const usersForSection = section.tasks.map((task) => task.assignee)
+    console.log("usersForSection", usersForSection)
+    const firstUser = usersForSection[0]
+    if (usersForSection.every((user) => user === firstUser)) {
+      return firstUser
+    }
+    return null
   }
 
   function toggleAssigneeEdit(taskId: string) {
@@ -111,11 +149,21 @@ export default function DueDiligenceDashboard({
               newTaskId = `${parentTaskId}.${subtaskCount + 1}`
             } else {
               // If parent task not found, fallback to adding a regular task
-              newTaskId = `${sectionId}.${section.tasks.length + 1}`
+              const topLevelTasks = section.tasks.filter(
+                (task) => !task.parentTaskId,
+              )
+              newTaskId = `${sectionId}.${topLevelTasks.length + 1}`
             }
           } else {
             // Adding a regular task
-            newTaskId = `${sectionId}.${section.tasks.length + 1}`
+            const topLevelTasks = section.tasks.filter(
+              (task) => !task.parentTaskId,
+            )
+            const lastTopLevelTask = topLevelTasks[topLevelTasks.length - 1]
+            const lastTopLevelNumber = lastTopLevelTask
+              ? parseInt(lastTopLevelTask.id.split(".")[1])
+              : 0
+            newTaskId = `${sectionId}.${lastTopLevelNumber + 1}`
           }
 
           const newTask: Task = {
@@ -127,7 +175,16 @@ export default function DueDiligenceDashboard({
             stakeholderStatus: "buyside",
             parentTaskId: parentTaskId || undefined,
           }
-          return { ...section, tasks: [...section.tasks, newTask] }
+
+          // Add the new task and sort all tasks by ID
+          const updatedTasks = [...section.tasks, newTask].sort((a, b) =>
+            a.id.localeCompare(b.id, undefined, {
+              numeric: true,
+              sensitivity: "base",
+            }),
+          )
+
+          return { ...section, tasks: updatedTasks }
         }
         return section
       }),
@@ -172,8 +229,10 @@ export default function DueDiligenceDashboard({
                   </TableCell>
                   <TableCell>
                     <SelectUserPopover
-                      selectedUserId={null}
-                      setSelectedUserId={(value: string | null) => {}} // TODO: Implement
+                      selectedUser={assigneeForAllTasks[section.id]}
+                      setSelectedUser={(value: User | null) => {
+                        updateAllTasksInSection(section.id, "assignee", value)
+                      }}
                     />
                   </TableCell>
                   <TableCell colSpan={2}>

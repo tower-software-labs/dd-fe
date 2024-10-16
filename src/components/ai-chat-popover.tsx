@@ -42,7 +42,7 @@ export default function AIAssistantPopover({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[70lvh] h-[60lvh] p-2 flex flex-col"
+        className="w-[80lvh] h-[70lvh] p-2 flex flex-col"
         align="end"
       >
         <AIAssistantChat

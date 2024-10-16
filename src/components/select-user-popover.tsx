@@ -20,25 +20,20 @@ import { cn } from "@/lib/utils"
 import { User } from "@/types/user"
 import { CommandList } from "cmdk"
 import { Check, UserRoundPlus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 export interface SelectUserPopoverProps {
-  selectedUserId: string | null
-  setSelectedUserId: (value: string | null) => void
+  selectedUser: User | null
+  setSelectedUser: (value: User | null) => void
   showTextInTrigger?: boolean
 }
 
 export default function SelectUserPopover({
-  selectedUserId,
-  setSelectedUserId,
+  selectedUser,
+  setSelectedUser,
   showTextInTrigger = false,
 }: SelectUserPopoverProps) {
   const [open, setOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    setSelectedUser(users.find((user) => user.id === selectedUserId) || null)
-  }, [selectedUserId])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -73,8 +68,8 @@ export default function SelectUserPopover({
                   key={user.id}
                   value={user.id}
                   onSelect={(currentValue) => {
-                    setSelectedUserId(
-                      currentValue === selectedUserId ? null : currentValue,
+                    setSelectedUser(
+                      users.find((user) => user.id === currentValue) || null,
                     )
                     setOpen(false)
                   }}
@@ -82,7 +77,9 @@ export default function SelectUserPopover({
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      selectedUserId === user.id ? "opacity-100" : "opacity-0",
+                      selectedUser?.id === user.id
+                        ? "opacity-100"
+                        : "opacity-0",
                     )}
                   />
                   {getUserDisplayString(user)}
