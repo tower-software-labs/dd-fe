@@ -4,17 +4,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { AISuggestedAction } from "@/types/ai"
 import { DataroomItem } from "@/types/dataroom"
+import { DocumentData } from "@/types/document"
 import { MessageSquare } from "lucide-react"
 import { useState } from "react"
 import AIAssistantChat from "./ai-chat"
 
 export interface AIAssistantPopoverProps {
   selectedDataroomItems: DataroomItem[]
+  searchableDocuments?: DocumentData[]
+  aiSuggestedActions?: AISuggestedAction[]
 }
 
 export default function AIAssistantPopover({
   selectedDataroomItems,
+  searchableDocuments = [],
+  aiSuggestedActions = [],
 }: AIAssistantPopoverProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -42,6 +48,8 @@ export default function AIAssistantPopover({
         <AIAssistantChat
           onClose={() => setIsOpen(false)}
           selectedDataroomItems={selectedDataroomItems}
+          aiSuggestedActions={aiSuggestedActions}
+          searchableDocuments={searchableDocuments}
         />
       </PopoverContent>
     </Popover>

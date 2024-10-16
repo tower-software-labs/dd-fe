@@ -26,7 +26,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/projects/[slug]/fold"
+    "src/app/projects/[slug]/fold",
+    "src/app/test-table"
   ],
   "exclude": ["node_modules"]
 }

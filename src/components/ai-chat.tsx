@@ -4,6 +4,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { AISuggestedAction } from "@/types/ai"
 import { Message } from "@/types/chat"
 import { DataroomItem } from "@/types/dataroom"
 import { Citation, DocumentData } from "@/types/document"
@@ -32,6 +39,7 @@ export interface AIAssistantChatProps {
   closeButtonType?: "x" | "collapse"
   onCitationClick?: (citation: Citation) => void
   selectedDataroomItems?: DataroomItem[]
+  aiSuggestedActions?: AISuggestedAction[]
 }
 
 export default function AIAssistantChat({
@@ -40,6 +48,7 @@ export default function AIAssistantChat({
   closeButtonType = "x",
   onCitationClick = (citation: Citation) => {},
   selectedDataroomItems = [],
+  aiSuggestedActions = [],
 }: AIAssistantChatProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
@@ -162,6 +171,34 @@ export default function AIAssistantChat({
     )
   }
 
+  function renderAISuggestedActions() {
+    if (messages.length > 1 || !aiSuggestedActions.length) return null
+
+    return (
+      <div className="flex flex-wrap gap-4 mt-4 ml-1">
+        {aiSuggestedActions.map((action) => (
+          <TooltipProvider key={action.id}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setInput(action.name)}
+                  className="outline outline-1 outline-offset-1 outline-blue-200 hover:outline-blue-500 hover:outline-2"
+                >
+                  {action.name}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{action.description}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
@@ -190,6 +227,7 @@ export default function AIAssistantChat({
               referenceItems={message.referenceItems}
             />
           ))}
+          {renderAISuggestedActions()}
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex flex-col max-w-[80%]">
@@ -197,7 +235,9 @@ export default function AIAssistantChat({
                   Clausy is thinking...
                 </span>
                 <div className="flex items-center space-x-2 bg-muted rounded-md p-2">
-                  <ThinkingAnimation isSingleDocument={true} />
+                  <ThinkingAnimation
+                    isSingleDocument={searchableDocuments.length === 1}
+                  />
                 </div>
               </div>
             </div>

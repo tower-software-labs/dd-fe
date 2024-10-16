@@ -18,6 +18,7 @@ import {
 import { useEffect, useState } from "react"
 
 import { folders as sampleFolders } from "@/app/sample-data/dataroom"
+import { sampleDocument } from "@/app/sample-data/document"
 import AIAssistantPopover from "@/components/ai-chat-popover"
 import DocumentExpirationSummary from "@/components/dataroom/expiration"
 import { Badge } from "@/components/ui/badge"
@@ -45,6 +46,8 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { minimalLocalDateTime } from "@/helpers/date-utils"
 import { useProject } from "@/providers/project-provider"
+import { AISuggestedAction } from "@/types/ai"
+import { DocumentData } from "@/types/document"
 
 const tabClass =
   "font-medium border-b-2 border-slate-300 text-slate-400 hover:border-blue-600 hover:text-black hover:font-bold data-[state=active]:border-blue-600 data-[state=active]:text-black data-[state=active]:font-bold cursor-pointer px-2 pb-[10px] pt-2 relative top-[2px]"
@@ -89,6 +92,19 @@ function DataroomTabs({
     </div>
   )
 }
+
+const dataroomAISuggestedActions: AISuggestedAction[] = [
+  {
+    id: "1",
+    name: "Disclosure Investigation",
+    description: "Investigate a disclosure schedule against the dataroom",
+  },
+  {
+    id: "2",
+    name: "Clause Extraction",
+    description: "Summarize all agreements with a certain clause.",
+  },
+]
 export interface DataRoomPageProps {
   params: {
     slug: string
@@ -125,6 +141,9 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
   const [numInEffect, setNumInEffect] = useState<number>(234)
   const [numAutoRenewal, setNumAutoRenewal] = useState<number>(345)
   const [numExpired, setNumExpired] = useState<number>(456)
+  const [searchableDocuments, setSearchableDocuments] = useState<
+    DocumentData[]
+  >([sampleDocument, sampleDocument])
 
   useEffect(() => {
     setBreadcrumbs([
@@ -303,7 +322,11 @@ export default function DataRoomPage({ params }: DataRoomPageProps) {
           <Sparkles className="h-4 w-4" />
           Ask a question
         </span>
-        <AIAssistantPopover selectedDataroomItems={selectedDataroomItems} />
+        <AIAssistantPopover
+          selectedDataroomItems={selectedDataroomItems}
+          searchableDocuments={searchableDocuments}
+          aiSuggestedActions={dataroomAISuggestedActions}
+        />
       </div>
       <DataroomTabs activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="flex justify-between items-center">
