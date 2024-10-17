@@ -5,6 +5,8 @@ export interface AISuggestedAction {
   id: string
   name: string
   description: string
+  followUpPrompt: string
+  followUpSuggestedOptions?: string[]
 }
 
 export interface AIChatTableColumn {

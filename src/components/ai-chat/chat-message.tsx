@@ -7,12 +7,47 @@ import { Citation } from "@/types/document"
 import { ChevronRight, FileText, Folder } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
+import { motion } from "framer-motion"
+
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { ChatSuggestedOption } from "@/types/chat"
+
+export function WritingAnimation() {
+  return (
+    <div className="flex items-center space-x-1">
+      {[0, 1, 2].map((index) => (
+        <motion.div
+          key={index}
+          className="w-2 h-2 bg-gray-400 rounded-full"
+          initial={{ opacity: 0.2 }}
+          animate={{ opacity: 1 }}
+          transition={{
+            repeat: Infinity,
+            repeatType: "reverse",
+            duration: 0.8,
+            delay: index * 0.2,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
 export interface ChatMessageProps {
   sender: "ai" | "user"
   content: string
   citations?: Citation[]
   onCitationClick?: (citation: Citation) => void
   referenceItems?: DataroomItem[]
+  showWritingAnimation?: boolean
+  suggestedOptions?: ChatSuggestedOption[]
+  onSuggestedOptionClick?: (option: ChatSuggestedOption, isSelected: boolean) => void
 }
 
 export default function ChatMessage({
@@ -21,10 +56,15 @@ export default function ChatMessage({
   citations = [],
   onCitationClick,
   referenceItems,
+  showWritingAnimation = false,
+  suggestedOptions = [],
+  onSuggestedOptionClick,
 }: ChatMessageProps) {
   const [isScrollable, setIsScrollable] = useState(false)
   const [showChevron, setShowChevron] = useState(true)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [isWriting, setIsWriting] = useState(showWritingAnimation)
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([])
 
   useEffect(() => {
     const checkScrollable = () => {
@@ -41,6 +81,15 @@ export default function ChatMessage({
     window.addEventListener("resize", checkScrollable)
     return () => window.removeEventListener("resize", checkScrollable)
   }, [referenceItems])
+
+  useEffect(() => {
+    if (showWritingAnimation && sender === "ai") {
+      const timer = setTimeout(() => {
+        setIsWriting(false)
+      }, 2000) // Show animation for 2 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [referenceItems, showWritingAnimation, sender])
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -125,13 +174,63 @@ export default function ChatMessage({
     )
   }
 
+  function renderSuggestedOptions() {
+    if (!suggestedOptions.length || isWriting) return null
+
+    return (
+      <div className="flex flex-wrap gap-4 mt-4 ml-1">
+        {suggestedOptions.map((option) => (
+          <TooltipProvider key={option.id}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (option.multiple) {
+                      const isSelected = selectedOptions.includes(option.id)
+                      const newSelectedOptions = isSelected
+                        ? selectedOptions.filter((id) => id !== option.id)
+                        : [...selectedOptions, option.id]
+                      setSelectedOptions(newSelectedOptions)
+                      onSuggestedOptionClick && onSuggestedOptionClick(option, !isSelected)
+                    } else {
+                      onSuggestedOptionClick && onSuggestedOptionClick(option, true)
+                    }
+                  }}
+                  className="outline outline-1 outline-offset-1 outline-blue-200 hover:outline-blue-500 hover:outline-2 flex items-center gap-2"
+                >
+                  {option.multiple && (
+                    <Checkbox
+                      checked={selectedOptions.includes(option.id)}
+                      onCheckedChange={() => {}}
+                      className="mr-1"
+                    />
+                  )}
+                  {option.label}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{option.tooltip || option.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div
-      className={`flex ${sender === "user" ? "justify-end" : "justify-start"} mb-4`}
+      className={`flex flex-col ${
+        sender === "user" ? "items-end" : "items-start"
+      } mb-4`}
     >
       <div className="max-w-[80%]">
         <div
-          className={`flex flex-col ${sender === "user" ? "items-end" : "items-start"}`}
+          className={`flex flex-col ${
+            sender === "user" ? "items-end" : "items-start"
+          }`}
         >
           <span className="text-xs mb-1 text-gray-500">
             {sender === "user" ? "You" : "Clausy AI"}
@@ -143,11 +242,16 @@ export default function ChatMessage({
                 : "bg-muted"
             }`}
           >
-            <div className="text-sm">{renderContent()}</div>
+            {isWriting && sender === "ai" ? (
+              <WritingAnimation />
+            ) : (
+              <div className="text-sm">{renderContent()}</div>
+            )}
             {sender === "user" && renderSelectedItems()}
           </div>
         </div>
       </div>
+      {sender === "ai" && !isWriting && renderSuggestedOptions()}
     </div>
   )
 }
