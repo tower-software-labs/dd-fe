@@ -5,6 +5,7 @@ export interface ChatSuggestedOption {
   id: string
   label: string
   tooltip: string
+  multiple?: boolean
 }
 
 export interface Message {

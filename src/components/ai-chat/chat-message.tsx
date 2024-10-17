@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react"
 
 import { motion } from "framer-motion"
 
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Tooltip,
   TooltipContent,
@@ -46,7 +47,7 @@ export interface ChatMessageProps {
   referenceItems?: DataroomItem[]
   showWritingAnimation?: boolean
   suggestedOptions?: ChatSuggestedOption[]
-  onSuggestedOptionClick?: (option: ChatSuggestedOption) => void
+  onSuggestedOptionClick?: (option: ChatSuggestedOption, isSelected: boolean) => void
 }
 
 export default function ChatMessage({
@@ -63,6 +64,7 @@ export default function ChatMessage({
   const [showChevron, setShowChevron] = useState(true)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isWriting, setIsWriting] = useState(showWritingAnimation)
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([])
 
   useEffect(() => {
     const checkScrollable = () => {
@@ -184,11 +186,27 @@ export default function ChatMessage({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    onSuggestedOptionClick && onSuggestedOptionClick(option)
-                  }
-                  className="outline outline-1 outline-offset-1 outline-blue-200 hover:outline-blue-500 hover:outline-2"
+                  onClick={() => {
+                    if (option.multiple) {
+                      const isSelected = selectedOptions.includes(option.id)
+                      const newSelectedOptions = isSelected
+                        ? selectedOptions.filter((id) => id !== option.id)
+                        : [...selectedOptions, option.id]
+                      setSelectedOptions(newSelectedOptions)
+                      onSuggestedOptionClick && onSuggestedOptionClick(option, !isSelected)
+                    } else {
+                      onSuggestedOptionClick && onSuggestedOptionClick(option, true)
+                    }
+                  }}
+                  className="outline outline-1 outline-offset-1 outline-blue-200 hover:outline-blue-500 hover:outline-2 flex items-center gap-2"
                 >
+                  {option.multiple && (
+                    <Checkbox
+                      checked={selectedOptions.includes(option.id)}
+                      onCheckedChange={() => {}}
+                      className="mr-1"
+                    />
+                  )}
                   {option.label}
                 </Button>
               </TooltipTrigger>
