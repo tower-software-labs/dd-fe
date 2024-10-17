@@ -1,17 +1,10 @@
-import ChatMessage from "@/components/ai-chat/chat-message"
 import ThinkingAnimation from "@/components/ai-thinking-animation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
 import { AISuggestedAction } from "@/types/ai"
-import { Message } from "@/types/chat"
+import { ChatSuggestedOption, Message } from "@/types/chat"
 import { DataroomItem } from "@/types/dataroom"
 import { Citation, DocumentData } from "@/types/document"
 import {
@@ -24,6 +17,7 @@ import {
   X,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import ChatMessage from "./ai-chat/chat-message"
 
 const initialMessages: Message[] = [
   {
@@ -56,6 +50,38 @@ export default function AIAssistantChat({
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const [showChevron, setShowChevron] = useState(true)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [activeWorkflow, setActiveWorkflow] =
+    useState<AISuggestedAction | null>(null)
+
+  function handleSuggestedAction(option: ChatSuggestedOption) {
+    const userMessage: Message = {
+      sender: "user",
+      content: option.label,
+    }
+    setMessages([...messages, userMessage])
+
+    let workflow = activeWorkflow
+    if (!workflow) {
+      workflow =
+        aiSuggestedActions.find((action) => action.id === option.id) ?? null
+      setActiveWorkflow(workflow)
+    }
+    if (!workflow) {
+      return
+    }
+    const aiMessage: Message = {
+      sender: "ai",
+      content: workflow.followUpPrompt,
+      suggestedActions:
+        workflow.followUpSuggestedOptions?.map((option) => ({
+          id: option,
+          label: option,
+          tooltip: option,
+        })) ?? [],
+      showWritingAnimation: true,
+    }
+    setMessages((prevMessages) => [...prevMessages, aiMessage])
+  }
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -171,32 +197,30 @@ export default function AIAssistantChat({
     )
   }
 
-  function renderAISuggestedActions() {
-    if (messages.length > 1 || !aiSuggestedActions.length) return null
-
-    return (
-      <div className="flex flex-wrap gap-4 mt-4 ml-1">
-        {aiSuggestedActions.map((action) => (
-          <TooltipProvider key={action.id}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setInput(action.name)}
-                  className="outline outline-1 outline-offset-1 outline-blue-200 hover:outline-blue-500 hover:outline-2"
-                >
-                  {action.name}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{action.description}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ))}
-      </div>
-    )
+  function renderMessages() {
+    return messages.map((message, index) => (
+      <ChatMessage
+        key={index}
+        sender={message.sender}
+        content={message.content}
+        citations={message.citations}
+        onCitationClick={onCitationClick}
+        referenceItems={message.referenceItems}
+        showWritingAnimation={message.showWritingAnimation ?? false}
+        suggestedOptions={
+          index === messages.length - 1
+            ? index === 0
+              ? aiSuggestedActions.map((action) => ({
+                  id: action.id,
+                  label: action.name,
+                  tooltip: action.description,
+                }))
+              : message.suggestedActions || []
+            : []
+        }
+        onSuggestedOptionClick={handleSuggestedAction}
+      />
+    ))
   }
 
   return (
@@ -217,17 +241,7 @@ export default function AIAssistantChat({
       </div>
       <ScrollArea className="flex-grow mb-4 pr-4">
         <div className="space-y-4">
-          {messages.map((message, index) => (
-            <ChatMessage
-              key={index}
-              sender={message.sender}
-              content={message.content}
-              citations={message.citations}
-              onCitationClick={onCitationClick}
-              referenceItems={message.referenceItems}
-            />
-          ))}
-          {renderAISuggestedActions()}
+          {renderMessages()}
           {isLoading && (
             <div className="flex justify-start">
               <div className="flex flex-col max-w-[80%]">

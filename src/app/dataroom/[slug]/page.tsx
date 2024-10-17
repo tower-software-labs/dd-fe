@@ -74,11 +74,21 @@ const dataroomAISuggestedActions: AISuggestedAction[] = [
     id: "1",
     name: "Disclosure Investigation",
     description: "Investigate a disclosure schedule against the dataroom",
+    followUpPrompt:
+      "Can you please paste in the disclosure schedule you'd like to investigate, and select folders or documents you'd like to investigate against?",
   },
   {
     id: "2",
-    name: "Clause Extraction",
-    description: "Summarize all agreements with a certain clause.",
+    name: "Review for Specific Terms",
+    description: "Review a set of agreements for specific terms.",
+    followUpPrompt:
+      "Please provide the specific terms you'd like to review, and select folders or documents you'd like to investigate against. I've listed some common terms below.",
+    followUpSuggestedOptions: [
+      "Notice",
+      "Consent",
+      "Change of Control",
+      "Governing Law",
+    ],
   },
 ]
 export interface DataRoomPageProps {
